@@ -1,8 +1,9 @@
-import { Router } from "express";
-import emailvalidator from "email-validator";
-import { checkIfEmailExists as doesEmailAlreadyExists, insertUser as insertUserIntoDatabase } from "../databaseUtil";
+import { Request, Response, Router } from "express";
+import emailValidator from "email-validator";
+import { getUserWithEmail, getUserWithUsername, insertUserIntoDatabase } from "../databaseUtil";
 import bcrypt from "bcrypt";
 import passwordValidator from "password-validator";
+import { getUserDetailsWithTokens } from "./loginController";
 
 
 const router = Router();
@@ -11,8 +12,15 @@ router.get("/", (_req, res) => {
     return res.send("Hey! This is the GET response for the /register route. Did you meant to POST to this route?");
 });
 
-router.post("/", async (req, res) => {
+/**
+ * function to register a user
+ * takes the request and response objects as parameters
+ * Then checks if the email, username and password are valid
+ * If they are valid, then it inserts the user into the database
+ */
+async function registerUser(req: Request, res: Response) {
 
+    // Check if email is valid
     const email = req.body.email;
     if (email === undefined) {
         return res.status(400).send("Email is a required field");
@@ -20,14 +28,15 @@ router.post("/", async (req, res) => {
     else if (typeof email !== "string") {
         return res.status(400).send("Email must be of type string");
     }
-    else if (!emailvalidator.validate(email)) {
+    else if (!emailValidator.validate(email)) {
         return res.status(400).send("This email is not valid");
     }
-    else if (await doesEmailAlreadyExists(email)) {
+    else if (((await getUserWithEmail(email))).length > 0) {
         return res.status(409).send("An account with this email already exists");
     }
 
-    const username: string | undefined = req.body.username;
+    // Check if username is valid
+    const username = req.body.username;
     const usrenameRegex = /^[a-zA-Z][a-zA-Z0-9\-_\.]{2,99}$/;
     if (username === undefined) {
         return res.status(400).send("Username is a required field");
@@ -38,8 +47,12 @@ router.post("/", async (req, res) => {
     else if (!usrenameRegex.test(username)) {
         return res.status(400).send("Username must be at least 3 characters long, start with a letter, and only contain letters, numbers, dashes, underscores and dots");
     }
+    else if ((await getUserWithUsername(username)).length > 0) {
+        return res.status(409).send("An account with this username already exists");
+    }
 
-    const password: string | undefined = req.body.password;
+    // Check if password is valid
+    const password = req.body.password;
     const passwordSchema = new passwordValidator();
     passwordSchema
         .min(8, "Password must be at least 8 characters long")
@@ -58,16 +71,21 @@ router.post("/", async (req, res) => {
 
     //Store the user in the database
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await insertUserIntoDatabase(username, email, hashedPassword);
+
+    return res.send(getUserDetailsWithTokens(user[0]));
+}
+
+router.post("/", async (req, res) => {
 
     try {
-        await insertUserIntoDatabase(username, email, hashedPassword);
+        await registerUser(req, res);
     }
     catch (error) {
         console.error(error);
-        return res.status(500).send("Something went wrong while trying to register the user");
+        return res.status(500).send("Internal server error");
     }
 
-    return res.send("User registered successfully!");
 });
 
 

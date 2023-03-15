@@ -1,9 +1,98 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
+import JWT, { SignOptions } from "jsonwebtoken";
+import { getUserWithEmail, User } from "../databaseUtil";
+import emailValidator from "email-validator";
+import bcrypt from "bcrypt";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-    res.send("Hello! This is the API login route.");
+async function loginUser(req: Request, res: Response) {
+    // Check if email is valid
+    const email = req.body.email;
+    if (email === undefined) {
+        return res.status(400).send("Email is a required field");
+    }
+    else if (typeof email !== "string") {
+        return res.status(400).send("Email must be of type string");
+    }
+    else if (!emailValidator.validate(email)) {
+        return res.status(400).send("This email is not valid");
+    }
+    // Check if password is valid
+    const password = req.body.password;
+    if (password === undefined) {
+        return res.status(400).send("Password is a required field");
+    }
+    else if (typeof password !== "string") {
+        return res.status(400).send("Password must be of type string");
+    }
+    // Get user credentials from database and compare them
+    const user = await getUserWithEmail(email);
+    if (user.length === 0) {
+        return res.status(404).send("Account associated with the email does not exist");
+    }
+    else if (!bcrypt.compareSync(password, user[0].password)) {
+        return res.status(401).send("Invalid password or email");
+    }
+
+    return res.send(getUserDetailsWithTokens(user[0]));
+}
+
+router.get("/", async (req, res) => {
+
+    try {
+        await loginUser(req, res);
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).send("Internal server error");
+    }
+
 });
+
+export function generateAccessToken(userID: string) {
+
+    const accessTokenSecret = process.env.SERVER_ACCESS_TOKEN_SECRET as string;
+
+    const signingOptions: SignOptions = {
+        expiresIn: "1h",
+        issuer: "https://www.github.com/CryptCollab",
+        audience: userID
+    }
+
+    return JWT.sign({}, accessTokenSecret, signingOptions);
+
+}
+
+export function generateRefreshToken(userID: string) {
+
+    const refreshTokenSecret = process.env.SERVER_REFRESH_TOKEN_SECRET as string;
+
+    const signingOptions: SignOptions = {
+        expiresIn: "30d",
+        issuer: "https://www.github.com/CryptCollab",
+        audience: userID
+    }
+
+    return JWT.sign({}, refreshTokenSecret, signingOptions);
+
+}
+
+
+export function getUserDetailsWithTokens(user: User) {
+    const accessToken = generateAccessToken(user.user_id);
+    const refreshToken = generateRefreshToken(user.user_id);
+
+    return {
+        user: {
+            email: user.email,
+            userName: user.user_name,
+            userID: user.user_id
+        },
+        accessToken,
+        refreshToken,
+    }
+
+}
 
 export default router;
