@@ -9,13 +9,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT ?? 8080;
 const server = createServer(app);
-let prekey:string;
+let users: string[] = [];
 const io = new Server(server, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST'],
   },
 });
+let prekey: any;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -26,18 +27,37 @@ app.get('/api', (req: Request, res: Response) => {
   res.send('Express + TypeScript Server');
 });
 
+let documentLeader: string, participant: string;
+
 io.on('connect', (socket) => {
-  console.log('user connected with id: ', socket.id);
   socket.join("chatRoom");
-  socket.emit('usersInRoom',io.sockets.adapter.rooms.get("chatRoom")?.size);
-  socket.on("prekey", (data) => {
+  //Check if total users in room is greater than 1
+  console.log(`User connected with id: ${socket.id} in chatRoom with total users: ${io.sockets.adapter.rooms.get("chatRoom")?.size!}`);
+  if (io.sockets.adapter.rooms.get("chatRoom")?.size! == 1) { 
+    documentLeader = socket.id;
+    console.log(`New document leader with id: ${socket.id} in chatRoom`)
+  }
+  else {
+    participant = socket.id;
+    console.log(`New participant with id: ${socket.id} in chatRoom`)
+
+  }
+  socket.emit("usersInRoom", io.sockets.adapter.rooms.get("chatRoom")?.size!);
+  socket.on("preKeyBundle", (data,peer) => {
     prekey = data;
-    console.log(`Prekey: ${prekey}`);
-  });
-  socket.on("sendprekey", (data) => { 
-    console.log(`Message from client: ${data}`);
-    socket.emit("keyExchange", prekey);
-  });
+    console.log(`Recieved prekey bundle from ${socket.id}`);
+    socket.to(documentLeader).emit("prekeyBundleForHandshake", prekey,participant);
+  })
+
+  socket.on("firstMessage", (firstMessageBundle, recipient) => {
+    console.log(`Recieved first message from ${socket.id}`);
+    socket.to(recipient).emit("firstMessageForHandshake", firstMessageBundle);
+   });
+
+  socket.on("disconnect",()=> {
+    console.log(`User disconnected with id: ${socket.id} `);
+  })
+
 });
 
 io.on("connect_error", (err) => {
