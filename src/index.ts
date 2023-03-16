@@ -33,7 +33,7 @@ io.on('connect', (socket) => {
   socket.join("chatRoom");
   //Check if total users in room is greater than 1
   console.log(`User connected with id: ${socket.id} in chatRoom with total users: ${io.sockets.adapter.rooms.get("chatRoom")?.size!}`);
-  if (io.sockets.adapter.rooms.get("chatRoom")?.size! == 1) { 
+  if (io.sockets.adapter.rooms.get("chatRoom")?.size! == 1) {
     documentLeader = socket.id;
     console.log(`New document leader with id: ${socket.id} in chatRoom`)
   }
@@ -43,22 +43,28 @@ io.on('connect', (socket) => {
 
   }
   socket.emit("usersInRoom", io.sockets.adapter.rooms.get("chatRoom")?.size!);
-  socket.on("preKeyBundle", (data,peer) => {
+  socket.on("preKeyBundle", (data, peer) => {
     prekey = data;
     console.log(`Recieved prekey bundle from ${socket.id}`);
-    socket.to(documentLeader).emit("prekeyBundleForHandshake", prekey,participant);
+    socket.to(documentLeader).emit("prekeyBundleForHandshake", prekey, participant);
   })
 
-  socket.on("firstMessage", (firstMessageBundle, recipient) => {
+  socket.on("firstMessage", (firstMessageBundle, recipient, firstGroupMessage) => {
     console.log(`Recieved first message from ${socket.id}`);
-    socket.to(recipient).emit("firstMessageForHandshake", firstMessageBundle);
-   });
+    socket.to(recipient).emit("firstMessageForHandshake", firstMessageBundle, firstGroupMessage);
+  });
 
-  socket.on("disconnect",()=> {
+  socket.on("disconnect", () => {
     console.log(`User disconnected with id: ${socket.id} `);
+  })
+  
+  socket.on("groupMessage", (groupMessage) => {
+    console.log(`Recieved group message from ${socket.id}`);
+    socket.to("chatRoom").emit("groupMessage", groupMessage);
   })
 
 });
+
 
 io.on("connect_error", (err) => {
   console.log(`connect_error due to ${err.message}`);
