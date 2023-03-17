@@ -61,6 +61,7 @@ io.on('connect', (socket) => {
   socket.on("groupMessage", (groupMessage) => {
     console.log(`Recieved group message from ${socket.id}`);
     socket.to("chatRoom").emit("groupMessage", groupMessage);
+    console.log(`Group Message: `, groupMessage);
   })
 
 });
