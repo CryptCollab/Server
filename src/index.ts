@@ -1,13 +1,11 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import apiController from './controllers/apiController';
-import { connectToDatabase, getUserWithEmail } from './databaseUtil';
+import apiController from './routes/api';
+import { connectToDatabase } from './databaseUtil';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import checkAllEnviromentVariables from './enviromentVariables';
-import { generateAccessToken } from './controllers/loginController';
-import JWT from 'jsonwebtoken';
 
 dotenv.config();
 

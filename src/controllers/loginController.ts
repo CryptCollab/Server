@@ -1,12 +1,12 @@
-import { Request, Response, Router } from "express";
+import { Request, Response } from "express";
 import JWT, { SignOptions } from "jsonwebtoken";
 import { getUserWithEmail, User } from "../databaseUtil";
 import emailValidator from "email-validator";
 import bcrypt from "bcrypt";
 
-const router = Router();
 
-async function loginUser(req: Request, res: Response) {
+
+export default async function loginController(req: Request, res: Response) {
     // Check if email is valid
     const email = req.body.email;
     if (email === undefined) {
@@ -34,21 +34,16 @@ async function loginUser(req: Request, res: Response) {
     else if (!bcrypt.compareSync(password, user[0].password)) {
         return res.status(401).send("Invalid password or email");
     }
+    const { userData, accessToken, refreshToken } = getUserDetailsWithTokens(user[0]);
 
-    return res.send(getUserDetailsWithTokens(user[0]));
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: true,
+        maxAge: 1000 * 60 * 5
+    });
+    return res.send({ user: userData, accessToken });
 }
-
-router.get("/", async (req, res) => {
-
-    try {
-        await loginUser(req, res);
-    }
-    catch (error) {
-        console.error(error);
-        return res.status(500).send("Internal server error");
-    }
-
-});
 
 export function generateAccessToken(userID: string) {
 
@@ -84,7 +79,7 @@ export function getUserDetailsWithTokens(user: User) {
     const refreshToken = generateRefreshToken(user.user_id);
 
     return {
-        user: {
+        userData: {
             email: user.email,
             userName: user.user_name,
             userID: user.user_id
@@ -94,5 +89,3 @@ export function getUserDetailsWithTokens(user: User) {
     }
 
 }
-
-export default router;

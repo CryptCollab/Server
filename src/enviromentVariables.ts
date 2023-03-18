@@ -6,6 +6,8 @@ export const requiredEnviromentVariables: string[] = [
 
     "SERVER_ACCESS_TOKEN_SECRET",
     "SERVER_REFRESH_TOKEN_SECRET",
+
+    "VITE_APP_BASE_URL"
 ];
 
 
@@ -19,6 +21,7 @@ export default function checkAllEnviromentVariables() {
         }
     })
 
+    console.log(process.env.REACT_APP_BASE_URL)
     if (toExit) {
         console.error("Aborting...");
         process.exit(1);

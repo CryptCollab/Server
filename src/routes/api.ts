@@ -1,6 +1,7 @@
 import { Router } from "express";
-import registerController from "./registerController";
-import loginController from "./loginController";
+import registerController from "./register";
+import loginController from "./login";
+import documentRouter from "./document";
 
 const router = Router();
 
@@ -11,6 +12,8 @@ router.get("/", (req, res) => {
 router.use("/register", registerController);
 
 router.use("/login", loginController);
+
+router.use("/document", documentRouter)
 
 
 export default router;

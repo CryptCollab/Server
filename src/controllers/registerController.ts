@@ -5,20 +5,13 @@ import bcrypt from "bcrypt";
 import passwordValidator from "password-validator";
 import { getUserDetailsWithTokens } from "./loginController";
 
-
-const router = Router();
-
-router.get("/", (_req, res) => {
-    return res.send("Hey! This is the GET response for the /register route. Did you meant to POST to this route?");
-});
-
 /**
  * function to register a user
  * takes the request and response objects as parameters
  * Then checks if the email, username and password are valid
  * If they are valid, then it inserts the user into the database
  */
-async function registerUser(req: Request, res: Response) {
+export default async function registerController(req: Request, res: Response) {
 
     // Check if email is valid
     const email = req.body.email;
@@ -75,18 +68,3 @@ async function registerUser(req: Request, res: Response) {
 
     return res.send(getUserDetailsWithTokens(user[0]));
 }
-
-router.post("/", async (req, res) => {
-
-    try {
-        await registerUser(req, res);
-    }
-    catch (error) {
-        console.error(error);
-        return res.status(500).send("Internal server error");
-    }
-
-});
-
-
-export default router;
