@@ -30,27 +30,29 @@ app.get('/api', (req: Request, res: Response) => {
 let documentLeader: string, participant: string;
 
 io.on('connect', (socket) => {
-  socket.join("chatRoom");
+  socket.join("documentRoom");
   //Check if total users in room is greater than 1
-  console.log(`User connected with id: ${socket.id} in chatRoom with total users: ${io.sockets.adapter.rooms.get("chatRoom")?.size!}`);
-  if (io.sockets.adapter.rooms.get("chatRoom")?.size! == 1) {
+  console.log(`User connected with id: ${socket.id} in documentRoom with total users: ${io.sockets.adapter.rooms.get("documentRoom")?.size!}`);
+  if (io.sockets.adapter.rooms.get("documentRoom")?.size! == 1) {
     documentLeader = socket.id;
-    console.log(`New document leader with id: ${socket.id} in chatRoom`)
+    console.log(`New document leader with id: ${socket.id} in documentRoom`)
   }
   else {
     participant = socket.id;
-    console.log(`New participant with id: ${socket.id} in chatRoom`)
+    console.log(`New participant with id: ${socket.id} in documentRoom`)
 
   }
-  socket.emit("usersInRoom", io.sockets.adapter.rooms.get("chatRoom")?.size!);
+
+  socket.emit("usersInRoom", io.sockets.adapter.rooms.get("documentRoom")?.size!);
+
   socket.on("preKeyBundle", (data, peer) => {
     prekey = data;
-    console.log(`Recieved prekey bundle from ${socket.id}`);
+    //console.log(`Recieved prekey bundle from ${socket.id}`);
     socket.to(documentLeader).emit("prekeyBundleForHandshake", prekey, participant);
   })
 
   socket.on("firstMessage", (firstMessageBundle, recipient, firstGroupMessage) => {
-    console.log(`Recieved first message from ${socket.id}`);
+    //console.log(`Recieved first message from ${socket.id}`);
     socket.to(recipient).emit("firstMessageForHandshake", firstMessageBundle, firstGroupMessage);
   });
 
@@ -59,16 +61,26 @@ io.on('connect', (socket) => {
   })
   
   socket.on("groupMessage", (groupMessage) => {
-    console.log(`Recieved group message from ${socket.id}`);
-    socket.to("chatRoom").emit("groupMessage", groupMessage);
-    console.log(`Group Message: `, groupMessage);
+    //console.log(`Recieved group message from ${socket.id}`);
+    socket.to("documentRoom").emit("groupMessage", groupMessage);
+    //console.log(`Group Message: `, groupMessage);
   })
+
+  socket.on("documentUpdate", (documentUpdate) => {
+    socket.to("documentRoom").emit("documentUpdate",documentUpdate);
+    console.log("Recieved document update", documentUpdate);
+  })
+
 
 });
 
 
 io.on("connect_error", (err) => {
   console.log(`connect_error due to ${err.message}`);
+});
+
+io.on("disconnect", (reason) => {
+  console.log(`disconnect due to ${reason}`);
 });
 
 
