@@ -71,6 +71,10 @@ io.on('connect', (socket) => {
     console.log("Recieved document update", documentUpdate);
   })
 
+  socket.on("awarenessUpdate", (awarenessUpdate) => {
+    socket.to("documentRoom").emit("awarenessUpdate", awarenessUpdate);
+    console.log("Recieved awareness update", awarenessUpdate);
+  })
 
 });
 
