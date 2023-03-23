@@ -69,15 +69,20 @@ function getRefreshTokenIdentifier(refreshToken: string): string {
 	return `refreshToken:${refreshToken}`;
 }
 
-export async function saveRefreshToken(refreshToken: string, userId: string): Promise<void> {
+//TODO add expiry time
+export async function saveRefreshTokenToDatabase(refreshToken: string, userId: string): Promise<void> {
 	returnIfDatabaseNotInitialised();
 	await redisClient.set(getRefreshTokenIdentifier(refreshToken), userId);
+}
+
+export async function deleteRefreshTokenFromDatabase(refreshToken: string): Promise<void> {
+	returnIfDatabaseNotInitialised();
+	await redisClient.del(getRefreshTokenIdentifier(refreshToken));
 }
 export async function doesRefreshTokenExsists(refreshToken: string): Promise<boolean> {
 	returnIfDatabaseNotInitialised();
 	return (await redisClient.exists(getRefreshTokenIdentifier(refreshToken))) > 0;
 }
-
 export async function getRefreshToken(refreshToken: string) {
 	returnIfDatabaseNotInitialised();
 	return await redisClient.get(getRefreshTokenIdentifier(refreshToken));

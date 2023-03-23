@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { SignOptions } from "jsonwebtoken";
-import { User, saveRefreshToken } from "./database/api";
+import { User, saveRefreshTokenToDatabase, deleteRefreshTokenFromDatabase } from "./database/api";
 import JWT from "jsonwebtoken";
 
 export function generateAccessToken(userID: string) {
@@ -45,12 +45,12 @@ export function sendUserDataWithAccessToken(res: Response, user: User) {
 	});
 }
 
-export async function setRefreshTokenCookie(res: Response, user: User) {
+export async function setRefreshToken(res: Response, user: User) {
 	//Generate refresh token
 	const refreshToken = generateRefreshToken(user.entityId);
 
 	//Save refresh token to database
-	await saveRefreshToken(refreshToken, user.entityId);
+	await saveRefreshTokenToDatabase(refreshToken, user.entityId);
 
 	//Set refresh token cookie
 	res.cookie("refreshToken", refreshToken, {
@@ -62,9 +62,21 @@ export async function setRefreshTokenCookie(res: Response, user: User) {
 }
 
 
+export async function deleteRefreshToken(res: Response, refreshToken: string) {
+	
+	await deleteRefreshTokenFromDatabase(refreshToken);
+
+	res.clearCookie("refreshToken", {
+		httpOnly: true,
+		sameSite: "strict",
+		secure: (process.env.NODE_ENV === "production")
+	});
+}
+
+
 export async function sendUserDataWithTokens(res: Response, user: User) {
 
-	await setRefreshTokenCookie(res, user);
+	await setRefreshToken(res, user);
 
 	return sendUserDataWithAccessToken(res, user);
 
