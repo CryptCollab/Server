@@ -2,10 +2,10 @@ import { Request, Response } from "express";
 import { getUserWithEmail } from "../database/api";
 import emailValidator from "email-validator";
 import bcrypt from "bcrypt";
-import { sendUserDetailsWithTokens } from "../tokenUtils";
+import { sendUserDataWithTokens } from "../tokenUtils";
 
 
-
+//TODO joi validation
 export default async function loginController(req: Request, res: Response) {
 	// Check if email is valid
 	const email = req.body.email;
@@ -34,7 +34,7 @@ export default async function loginController(req: Request, res: Response) {
 	else if (!bcrypt.compareSync(password, user.toJSON().password)) {
 		return res.status(401).send("Invalid password or email");
 	}
-	return sendUserDetailsWithTokens(res, user);
+	return sendUserDataWithTokens(res, user);
 }
 
 

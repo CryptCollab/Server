@@ -3,7 +3,7 @@ import emailValidator from "email-validator";
 import { getUserWithEmail, getUserWithUsername, insertUserIntoDatabase } from "../database/api";
 import bcrypt from "bcrypt";
 import passwordValidator from "password-validator";
-import { sendUserDetailsWithTokens } from "../tokenUtils";
+import { sendUserDataWithTokens } from "../tokenUtils";
 
 /**
  * function to register a user
@@ -66,5 +66,5 @@ export default async function registerController(req: Request, res: Response) {
 	const hashedPassword = await bcrypt.hash(password, 10);
 	const user = await insertUserIntoDatabase(username, email, hashedPassword);
 
-	return sendUserDetailsWithTokens(res, user);
+	return sendUserDataWithTokens(res, user);
 }

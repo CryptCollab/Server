@@ -20,9 +20,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/", express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.use("/api", apiController);
+
+app.get('*', (_req, res) => {
+	res.sendFile(path.join(__dirname, "../public/index.html"));
+});
 
 app.listen(port, () => {
 	console.log(`⚡️ Server is ready & running at http://localhost:${port}`);
