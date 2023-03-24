@@ -1,13 +1,25 @@
 import express, { Express, Request, Response } from 'express';
 import { createServer } from "http";
+import dotenv from "dotenv";
 import { Server } from "socket.io";
-import dotenv from 'dotenv';
-import path from 'path';
+import path from "path";
+import apiController from "./routes/api";
+import { connectToDatabase } from "./database/api";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import checkAllEnviromentVariables from "./enviromentVariables";
 import cors from 'cors';
+
 dotenv.config();
 
-const app = express();
+checkAllEnviromentVariables();
+
+// connectToDatabase();
+
 const port = process.env.PORT ?? 8080;
+
+const app: Express = express();
+
 const server = createServer(app);
 let users: string[] = [];
 const io = new Server(server, {
@@ -21,10 +33,17 @@ app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
-app.use('/', express.static(path.join(__dirname, '../public')))
 
-app.get('/api', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, "../public")));
+
+app.use("/api", apiController);
+
+app.get('*', (_req, res) => {
+	res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 let documentLeader: string, participant: string;

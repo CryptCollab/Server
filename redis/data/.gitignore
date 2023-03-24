@@ -1,0 +1,3 @@
+#file for adding empty data directory to git
+*
+!.gitignore
