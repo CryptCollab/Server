@@ -1,17 +1,12 @@
 export const requiredEnviromentVariables: string[] = [
 	"NODE_ENV",
 
-	"MYSQL_USER",
-	"MYSQL_PASSWORD",
-	"MYSQL_DATABASE",
-	"MYSQL_HOST",
 
 	"REDIS_URL",
 
 	"SERVER_ACCESS_TOKEN_SECRET",
 	"SERVER_REFRESH_TOKEN_SECRET",
 
-	"VITE_APP_BASE_URL"
 ];
 
 
