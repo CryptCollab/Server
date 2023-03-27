@@ -11,7 +11,7 @@ import cookieParser from "cookie-parser";
 import checkAllEnviromentVariables from "./enviromentVariables";
 import cors from "cors";
 import { createAdapter } from "@socket.io/redis-adapter";
-import { createClient, RedisClientType } from "redis";
+import { RedisClientType } from "redis";
 import { connectToDatabase } from "./database/api";
 
 dotenv.config();
@@ -63,7 +63,7 @@ app.get("*", (_req, res) => {
 let documentLeader: string, participant: string;
 io.on("connect", async (socket) => {
 	socket.join("documentRoom");
-	const listener = (message: any, channel: any) => console.log(message, channel);
+	const listener = (message: string, channel: string) => console.log(message, channel);
 	await subscriberClient.subscribe("documentRoom", listener);
 	//Check if total users in room is greater than 1
 	console.log(`User connected with id: ${socket.id} in documentRoom with total users: ${io.sockets.adapter.rooms.get("documentRoom")?.size!}`);
