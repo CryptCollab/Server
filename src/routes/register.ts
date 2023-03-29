@@ -1,5 +1,6 @@
 import { Router } from "express";
 import registerController from "../controllers/registerController";
+import validateBody, { emailValidation, passwordValidation, usernameValidation } from "../middlewares/validateBody";
 
 
 const router = Router();
@@ -8,7 +9,7 @@ router.get("/", (_req, res) => {
 	return res.send("Hey! This is the GET response for the /register route. Did you meant to POST to this route?");
 });
 
-router.post("/", async (req, res) => {
+router.post("/", validateBody(emailValidation, usernameValidation, passwordValidation), async (req, res) => {
 
 	try {
 		await registerController(req, res);
