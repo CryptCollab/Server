@@ -43,6 +43,7 @@ export async function connectToDatabase() {
 	userRepository.createIndex();
 
 	console.log("✅ Connected to Database");
+	return redisClient;
 }
 
 
