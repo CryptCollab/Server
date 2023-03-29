@@ -30,7 +30,8 @@ export default async function registerController(req: Request, res: Response) {
 
 	// Check if username is valid
 	const username = req.body.username;
-	const usrenameRegex = /^[a-zA-Z][a-zA-Z0-9\-_\.]{2,99}$/;
+	//FIXME: This regex is not perfect, but it's good enough for now
+	const usrenameRegex = /^[a-zA-Z][a-zA-Z0-9\-_\\.]{2,99}$/;
 	if (username === undefined) {
 		return res.status(400).send("Username is a required field");
 	}
@@ -58,6 +59,7 @@ export default async function registerController(req: Request, res: Response) {
 		return res.status(400).send("Password must be of type string");
 	}
 	else if (!passwordSchema.validate(password)) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const errorMessageListWithDetails = passwordSchema.validate(password, { details: true }) as any[];
 		return res.status(400).send(errorMessageListWithDetails[0].message);
 	}
