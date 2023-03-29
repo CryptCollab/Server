@@ -11,6 +11,7 @@ import { Client, Entity, Repository, Schema } from "redis-om";
  */
 
 
+const MONTH_IN_SECS = 60 * 60 * 24 * 30;
 
 export class User extends Entity {
 }
@@ -70,10 +71,11 @@ function getRefreshTokenIdentifier(refreshToken: string): string {
 	return `refreshToken:${refreshToken}`;
 }
 
-//TODO add expiry time
 export async function saveRefreshTokenToDatabase(refreshToken: string, userId: string): Promise<void> {
 	returnIfDatabaseNotInitialised();
-	await redisClient.set(getRefreshTokenIdentifier(refreshToken), userId);
+	await redisClient.set(getRefreshTokenIdentifier(refreshToken), userId, {
+		EX: MONTH_IN_SECS,
+	});
 }
 
 export async function deleteRefreshTokenFromDatabase(refreshToken: string): Promise<void> {
@@ -81,12 +83,13 @@ export async function deleteRefreshTokenFromDatabase(refreshToken: string): Prom
 	await redisClient.del(getRefreshTokenIdentifier(refreshToken));
 }
 export async function doesRefreshTokenExsists(refreshToken: string): Promise<boolean> {
-	returnIfDatabaseNotInitialised();
-	return (await redisClient.exists(getRefreshTokenIdentifier(refreshToken))) > 0;
+	return (await getRefreshToken(getRefreshTokenIdentifier(refreshToken))) !== null;
 }
 export async function getRefreshToken(refreshToken: string) {
 	returnIfDatabaseNotInitialised();
-	return await redisClient.get(getRefreshTokenIdentifier(refreshToken));
+	return await redisClient.getEx(getRefreshTokenIdentifier(refreshToken), {
+		EX: MONTH_IN_SECS
+	});
 }
 
 
@@ -108,6 +111,7 @@ export async function getUserWithId(userId: string): Promise<User | null> {
 
 
 export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User> {
+	returnIfDatabaseNotInitialised();
 
 	const user = await userRepository.createAndSave({
 		user_name: userName,
