@@ -7,7 +7,7 @@ import { sendUserDataWithTokens } from "../tokenUtils";
 
 export default async function loginController(req: Request, res: Response) {
 
-	const { email, password } = req.body.email;
+	const { email, password } = req.body;
 
 	// Get user credentials from database and compare them
 	const user = await getUserWithEmail(email);

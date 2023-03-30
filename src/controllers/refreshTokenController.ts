@@ -9,7 +9,7 @@ export default async function refreshController(req: Request, res: Response) {
 	const cookies = req.cookies;
 
 	if (!cookies?.refreshToken) {
-		return res.sendStatus(401)
+		return res.sendStatus(401);
 	}
 
 	const refreshToken = cookies.refreshToken;
@@ -17,21 +17,22 @@ export default async function refreshController(req: Request, res: Response) {
 	const userID = await getRefreshToken(refreshToken);
 
 	if (userID === null) {
-		return res.status(403)
+		return res.status(403);
 	}
 
 	const tokenSecret = process.env.SERVER_REFRESH_TOKEN_SECRET as string;
 	try {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const decoded: any = jwt.verify(refreshToken, tokenSecret);
 
 		if (decoded?.aud !== userID) {
-			return res.sendStatus(403)
+			return res.sendStatus(403);
 		}
 
 	}
 	catch (error) {
 		console.error(error);
-		return res.sendStatus(403)
+		return res.sendStatus(403);
 	}
 
 

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import documentCreationController from "../controllers/documentCreationController";
 import verifyJWT from "../middlewares/authenticateUser";
+import validateBody, { userIDvalidation } from "../middlewares/validateBody";
 
 
 
@@ -14,7 +15,7 @@ router.get("/", verifyJWT, (req, res) => {
 	return res.send(`Hey! This is the GET response for the /documet route. ${req.userId}`);
 });
 
-router.post("/", verifyJWT, documentCreationController);
+router.post("/", verifyJWT,validateBody(userIDvalidation), documentCreationController);
 
 
 
