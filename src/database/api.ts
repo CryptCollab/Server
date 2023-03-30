@@ -7,13 +7,23 @@ import { Client, Entity, Repository, Schema } from "redis-om";
  * @apis 
  * getUserWithEmail(email: string): Promise<User[]>
  * getUserWithUsername(email: string): Promise<User[]>
+ * getDocumentMetaDataWithId(documentId: string): Promise<DocumentMetaData[]>
+ * getDocumentInvitationWithId(documentId: string): Promise<DocumentInvitationStore[]>
  * insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User[]>
+ * insertDocumentInvitationIntoDatabase(documentId: string, participantId: string, leaderId: string, preKeyBundle: string, firstMessage: string): Promise<DocumentInvitationStore[]>
+ * insertDocumentMetaDataIntoDatabase(documentId: string, leaderId: string, totalParticipants: number, participantIds: string[], latestDocumentUpdate: string): Promise<DocumentMetaData[]>
  */
 
 
 const MONTH_IN_SECS = 60 * 60 * 24 * 30;
 
 export class User extends Entity {
+}
+
+export class DocumentInvitationStore extends Entity {
+}
+
+export class DocumentMetaData extends Entity {
 }
 
 const userSchema = new Schema(User, {
@@ -28,10 +38,44 @@ const userSchema = new Schema(User, {
 	}
 });
 
+const documentInvitationStoreSchema = new Schema(DocumentInvitationStore, {
+	document_id: {
+		type: "string",
+	},
+	participant_id: {
+		type: "string",
+	},
+	leader_id: {
+		type: "string",
+	},
+	preKeyBundle: {
+		type: "string",
+	},
+	firstMessage: {
+		type: "string",
+	},
+});
+
+const documentMetaDataSchema = new Schema(DocumentMetaData, {
+	leader_id: {
+		type: "string",
+	},
+	total_participants: {
+		type: "number",
+	},
+	participant_ids: {
+		type: "string[]",
+	},
+	latest_document_update: {
+		type: "string",
+	},
+});
+
 let redisClient: RedisClientType;
 let redisOmClient: Client;
 let userRepository: Repository<User>;
-
+let documentInvitationStoreRepository: Repository<DocumentInvitationStore>;
+let documentMetaDataRepository: Repository<DocumentMetaData>;
 
 export async function connectToDatabase() {
 	redisClient = createClient({ url: process.env.REDIS_URL });
@@ -40,7 +84,12 @@ export async function connectToDatabase() {
 	redisOmClient = await new Client().use(redisClient);
 
 	userRepository = redisOmClient.fetchRepository(userSchema);
+	documentInvitationStoreRepository = redisOmClient.fetchRepository(documentInvitationStoreSchema);
+	documentMetaDataRepository = redisOmClient.fetchRepository(documentMetaDataSchema);
 	userRepository.createIndex();
+	documentInvitationStoreRepository.createIndex();
+	documentMetaDataRepository.createIndex();
+
 
 	console.log("✅ Connected to Database");
 	return redisClient;
@@ -109,6 +158,16 @@ export async function getUserWithId(userId: string): Promise<User | null> {
 	return await userRepository.fetch(userId);
 }
 
+export async function getDocumentMetaDataWithId(documentId: string): Promise<DocumentMetaData | null> {
+	returnIfDatabaseNotInitialised();
+	return await documentMetaDataRepository.fetch(documentId);
+}
+
+export async function getDocumentInvitationWithId(documentInvitationId: string): Promise<DocumentInvitationStore | null> {
+	returnIfDatabaseNotInitialised();
+	return await documentInvitationStoreRepository.fetch(documentInvitationId);
+}
+
 
 export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User> {
 	returnIfDatabaseNotInitialised();
@@ -120,5 +179,30 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 	});
 
 	return user;
+}
+
+export async function insertDocumentInvitationIntoDatabase(documentId: string, participantId: string, leaderId: string, preKeyBundle: string, firstMessage: string): Promise<DocumentInvitationStore> {
+
+	const documentInvitation = await documentInvitationStoreRepository.createAndSave({
+		document_id: documentId,
+		participant_id: participantId,
+		leader_id: leaderId,
+		preKeyBundle: preKeyBundle,
+		firstMessage: firstMessage
+	});
+
+	return documentInvitation;
+}
+
+export async function insertDocumentMetaDataIntoDatabase(leaderId: string, totalParticipants: number, participantIds: string[], latestDocumentUpdate: string): Promise<DocumentMetaData> {
+	
+	const documentMetaData = await documentMetaDataRepository.createAndSave({
+		leader_id: leaderId,
+		total_participants: totalParticipants,
+		participant_ids: participantIds,
+		latest_document_update: latestDocumentUpdate
+	});
+
+	return documentMetaData;
 }
 
