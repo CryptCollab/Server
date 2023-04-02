@@ -44,8 +44,9 @@ connectToDatabase().then(async (redisClient) => {
 
 let prekey: unknown;
 app.use(cors({
-	origin: "*",
-	methods: ["GET", "POST", "PUT", "DELETE"],
+	origin: process.env.CLIENT_BASE_URL,
+	credentials: true,
+	methods: ["GET", "POST"],
 }));
 
 app.use(cookieParser());
@@ -56,10 +57,6 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 app.use("/api", apiController);
 
-
-app.get("*", (_req, res) => {
-	res.sendFile(path.join(__dirname, "../public/index.html"));
-});
 
 let documentLeader: string, participant: string;
 io.on("connect", async (socket) => {

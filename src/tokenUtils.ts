@@ -55,7 +55,7 @@ export async function setRefreshToken(res: Response, user: User) {
 	//Set refresh token cookie
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-		sameSite: "strict",
+		sameSite: "none",
 		secure: (process.env.NODE_ENV === "production"),
 		maxAge: 1000 * 60 * 5
 	});
@@ -63,12 +63,12 @@ export async function setRefreshToken(res: Response, user: User) {
 
 
 export async function deleteRefreshToken(res: Response, refreshToken: string) {
-	
+
 	await deleteRefreshTokenFromDatabase(refreshToken);
 
 	res.clearCookie("refreshToken", {
 		httpOnly: true,
-		sameSite: "strict",
+		sameSite: "none",
 		secure: (process.env.NODE_ENV === "production")
 	});
 }
