@@ -29,10 +29,13 @@ export interface User {
 
 const userSchema = new Schema("user", {
 	user_name: {
-		type: "string",
+		type: "text",
 	},
 	email: {
 		type: "string",
+	},
+	email_username: {
+		type: "text",
 	},
 	password: {
 		type: "string",
@@ -177,27 +180,41 @@ export async function getUserWithID(userId: string): Promise<User | null> {
 }
 export async function getUserWithEmail(email: string): Promise<User | null> {
 	returnIfDatabaseNotInitialised();
-	const queryResult = await userRepository.search().where("email").eq(email).return.first();
+	const queryResult = await userRepository.search().where("email").equals(email).return.first();
 	return entityToUser(queryResult);
 }
 
 export async function getUserWithUsername(userName: string): Promise<User | null> {
 	returnIfDatabaseNotInitialised();
-	const queryResult = await userRepository.search().where("user_name").eq(userName).return.first();
+	const queryResult = await userRepository.search().where("user_name").matchesExactly(userName).return.first();
 	return entityToUser(queryResult);
 }
-
+//TODO better email matching
 export async function getUserStartingWithUsernameOrEmail(user: string): Promise<User[]> {
 	returnIfDatabaseNotInitialised();
-	console.log(`${user}*`);
+	user = user.split("@")[0];
+	const queryTerm = `${user}*`;
+	console.log(queryTerm);
 	const queryResult = await userRepository.search()
-		.where("user_name").match("rona*")
-		.return.all();
+		.where("user_name").matches(queryTerm)
+		.or("email_username").matches(queryTerm)
+		.return.page(0, 10);
 	console.log(queryResult);
 	return queryResult.map((entity) => entityToUser(entity)).filter((user) => user !== null) as User[];
 }
 
+export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User | null> {
+	returnIfDatabaseNotInitialised();
 
+
+	const user = await userRepository.save({
+		user_name: userName,
+		email: email,
+		email_username: email.split("@")[0],
+		password: hashedPassword
+	});
+	return entityToUser(user);
+}
 
 export async function getDocumentMetaDataWithId(documentId: string): Promise<Entity | null> {
 	returnIfDatabaseNotInitialised();
@@ -210,17 +227,6 @@ export async function getDocumentInvitationWithId(documentInvitationId: string):
 }
 
 
-export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User | null> {
-	returnIfDatabaseNotInitialised();
-
-
-	const user = await userRepository.save({
-		user_name: userName,
-		email: email,
-		password: hashedPassword
-	});
-	return entityToUser(user);
-}
 
 export async function insertDocumentInvitationIntoDatabase(documentId: string, participantId: string, leaderId: string, preKeyBundle: string, firstMessage: string): Promise<Entity> {
 	returnIfDatabaseNotInitialised();
