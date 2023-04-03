@@ -1,4 +1,4 @@
-import validateBody, { emailValidation, passwordValidation } from "../middlewares/validateBody";
+import validate, { emailValidation, passwordValidation } from "../middlewares/validateBody";
 import { Router } from "express";
 import loginController from "../controllers/loginController";
 
@@ -8,7 +8,7 @@ router.get("/", (_req, res) => {
 	return res.send("Hey! This is the GET response for the /login route. Did you meant to POST to this route?");
 });
 
-router.post("/", validateBody(emailValidation, passwordValidation), async (req, res) => {
+router.post("/", validate(emailValidation, passwordValidation), async (req, res) => {
 
 	try {
 		await loginController(req, res);

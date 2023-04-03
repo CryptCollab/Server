@@ -19,6 +19,8 @@ dotenv.config();
 checkAllEnviromentVariables();
 
 
+
+
 const port = process.env.PORT ?? 8080;
 
 const app: Express = express();
@@ -40,6 +42,8 @@ connectToDatabase().then(async (redisClient) => {
 	});
 	await subscriberClient.connect();
 });
+
+
 
 
 let prekey: unknown;
@@ -123,9 +127,6 @@ io.on("disconnect", (reason) => {
 
 
 
-// app.listen(port, () => {
-//   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-// });
 
 server.listen(port, () => {
 	console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { body, ValidationChain, validationResult } from "express-validator";
+import { body, query, ValidationChain, validationResult, } from "express-validator";
 
 //TODO sanitize input
 
@@ -24,12 +24,22 @@ export const passwordValidation = body("password")
 	.isLength({ min: 8 }).withMessage("Password must be at least 8 characters long!")
 	.isLength({ max: 100 }).withMessage("Password must be at most 100 characters long!");
 
-export const userIDvalidation = body("userID")
-	.exists({ checkNull: true, checkFalsy: true }).withMessage("userID is a required field!").bail()
-	.notEmpty().withMessage("userID cannot be empty!").bail()
-	.isString().withMessage("userID must be of type string!").bail();
+/**
+ * Dyanmic validation for checking if a field exsists and is not empty
+*/
+export const exsistsInBody = (...fields: string[]) => body(fields)
+	.exists({ checkNull: true, checkFalsy: true }).withMessage(`${fields} is a required field!`).bail()
+	.notEmpty().withMessage(`${fields} cannot be empty!`).bail()
+	.isString().withMessage(`${fields} must be of type string!`).bail();
 
-export default function validateBody(...validations: ValidationChain[]) {
+export const exsistsInQuery = (...fields: string[]) => query(fields)
+	.exists({ checkNull: true, checkFalsy: true }).withMessage(`${fields} is a required field!`).bail()
+	.notEmpty().withMessage(`${fields} cannot be empty!`).bail()
+	.isString().withMessage(`${fields} must be of type string!`).bail();
+
+
+
+export default function validate(...validations: ValidationChain[]) {
 
 	return async (req: Request, res: Response, next: NextFunction) => {
 		await Promise.all(validations.map(validation => validation.run(req)));

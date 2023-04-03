@@ -3,6 +3,7 @@ import registerController from "./register";
 import loginController from "./login";
 import documentRouter from "./document";
 import refreshRouter from "./refresh";
+import userRouter from "./users";
 import logoutController from "../controllers/logoutController";
 
 const router = Router();
@@ -20,6 +21,8 @@ router.use("/logout", logoutController);
 router.use("/document", documentRouter);
 
 router.use("/refresh", refreshRouter);
+
+router.use("/users", userRouter);
 
 
 

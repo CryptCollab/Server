@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
+    "lint": "eslint src/ --fix",
+    "prestart": "npm run lint",
     "start": "ts-node --files src/index.ts",
+    "predev": "npm run lint",
     "dev": "nodemon --files src/index.ts -w src"
   },
   "keywords": [],
@@ -24,7 +27,7 @@
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.2.0",
     "redis": "^4.6.5",
-    "redis-om": "^0.3.6",
+    "redis-om": "^0.4.0-beta.2",
     "socket.io": "^4.6.1",
     "uuid": "^9.0.0"
   },

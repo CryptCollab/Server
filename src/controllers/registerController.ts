@@ -27,6 +27,8 @@ export default async function registerController(req: Request, res: Response) {
 	const hashedPassword = await bcrypt.hash(password, 10);
 	const user = await insertUserIntoDatabase(username, email, hashedPassword);
 
+	if (user === null) throw new Error("User is returned as null after inserting into database");
+
 	return sendUserDataWithTokens(res, user);
 }
 
