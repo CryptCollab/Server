@@ -13,6 +13,7 @@ import cors from "cors";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { RedisClientType } from "redis";
 import { connectToDatabase } from "./database/api";
+import { socketConnectionsHandler } from "./socketHandlers";
 
 dotenv.config();
 
@@ -41,12 +42,16 @@ connectToDatabase().then(async (redisClient) => {
 		console.log("Redis subscriber error", err);
 	});
 	await subscriberClient.connect();
+}).then(() => {
+	console.log("Connected to redis");
+	socketConnectionsHandler(io, subscriberClient, publisherClient);
+}).catch((err) => {
+	console.log("Error connecting to redis", err);
 });
 
 
 
 
-let prekey: unknown;
 app.use(cors({
 	origin: process.env.CLIENT_BASE_URL,
 	credentials: true,
@@ -60,72 +65,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.use("/api", apiController);
-
-
-let documentLeader: string, participant: string;
-io.on("connect", async (socket) => {
-	socket.join("documentRoom");
-	const listener = (message: string, channel: string) => console.log(message, channel);
-	await subscriberClient.subscribe("documentRoom", listener);
-	//Check if total users in room is greater than 1
-	console.log(`User connected with id: ${socket.id} in documentRoom with total users: ${io.sockets.adapter.rooms.get("documentRoom")?.size!}`);
-	if (io.sockets.adapter.rooms.get("documentRoom")?.size! == 1) {
-		documentLeader = socket.id;
-		console.log(`New document leader with id: ${socket.id} in documentRoom`);
-	}
-	else {
-		participant = socket.id;
-		console.log(`New participant with id: ${socket.id} in documentRoom`);
-
-	}
-
-	socket.emit("usersInRoom", io.sockets.adapter.rooms.get("documentRoom")?.size!);
-
-	socket.on("preKeyBundle", (data) => {
-		prekey = data;
-		//console.log(`Recieved prekey bundle from ${socket.id}`);
-		socket.to(documentLeader).emit("prekeyBundleForHandshake", prekey, participant);
-	});
-
-	socket.on("firstMessage", (firstMessageBundle, recipient, firstGroupMessage) => {
-		//console.log(`Recieved first message from ${socket.id}`);
-		socket.to(recipient).emit("firstMessageForHandshake", firstMessageBundle, firstGroupMessage);
-	});
-
-	socket.on("disconnect", () => {
-		console.log(`User disconnected with id: ${socket.id} `);
-	});
-
-	socket.on("groupMessage", (groupMessage) => {
-		//console.log(`Recieved group message from ${socket.id}`);
-		socket.to("documentRoom").emit("groupMessage", groupMessage);
-		//console.log(`Group Message: `, groupMessage);
-	});
-
-	socket.on("documentUpdate", (documentUpdate) => {
-		socket.to("documentRoom").emit("documentUpdate", documentUpdate);
-		//console.log("Recieved document update", documentUpdate);
-		publisherClient.publish("documentRoom", documentUpdate);
-	});
-
-	socket.on("awarenessUpdate", (awarenessUpdate) => {
-		socket.to("documentRoom").emit("awarenessUpdate", awarenessUpdate);
-		//console.log("Recieved awareness update", awarenessUpdate);
-	});
-
-});
-
-
-io.on("connect_error", (err) => {
-	console.log(`connect_error due to ${err.message}`);
-});
-
-io.on("disconnect", (reason) => {
-	console.log(`disconnect due to ${reason}`);
-});
-
-
-
 
 
 server.listen(port, () => {

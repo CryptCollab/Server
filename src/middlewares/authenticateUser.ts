@@ -19,7 +19,7 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
 			tokenSecret,
 		);
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		req.userId = (decoded as any).aud;
+		req.userID = (decoded as any).aud;
 		return next();
 	}
 	catch (error) {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import documentCreationController from "../controllers/documentCreationController";
 import verifyJWT from "../middlewares/authenticateUser";
-import validate, { exsistsInBody } from "../middlewares/validateBody";
+import documentJoiningController from "../controllers/documentJoiningController";
 
 
 
@@ -12,10 +12,12 @@ const router = Router();
 export default router;
 
 router.get("/", verifyJWT, (req, res) => {
-	return res.send(`Hey! This is the GET response for the /documet route. ${req.userId}`);
+	return res.send(`Hey! This is the GET response for the /documet route. ${req.userID}`);
 });
 
-router.post("/", verifyJWT, validate(exsistsInBody("userID")), documentCreationController);
+router.post("/", verifyJWT,  documentCreationController);
+
+router.get("/invites", verifyJWT, documentJoiningController);
 
 
 
