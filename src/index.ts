@@ -14,8 +14,12 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { RedisClientType } from "redis";
 import { connectToDatabase } from "./database/api";
 import { socketConnectionsHandler } from "./socketHandlers";
+import log from "./logger";
 
 dotenv.config();
+
+
+
 
 checkAllEnviromentVariables();
 
@@ -43,7 +47,7 @@ connectToDatabase().then(async (redisClient) => {
 	});
 	await subscriberClient.connect();
 }).then(() => {
-	console.log("Connected to redis");
+	// console.log("Connected to redis");
 	socketConnectionsHandler(io, subscriberClient, publisherClient);
 }).catch((err) => {
 	console.log("Error connecting to redis", err);
@@ -68,5 +72,6 @@ app.use("/api", apiController);
 
 
 server.listen(port, () => {
-	console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+
+	log.info(`Server active & running at ${process.env.SERVER_BASE_URL} 🚀`);
 });

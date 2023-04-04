@@ -3,3 +3,4 @@ declare namespace Express {
         userID: string
     }
 }
+declare module "date-format"

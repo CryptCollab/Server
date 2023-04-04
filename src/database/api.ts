@@ -1,6 +1,8 @@
 import { RedisClientType, createClient } from "redis";
 
 import { Entity, EntityId, EntityKeyName, Repository, Schema } from "redis-om";
+import log from "../logger";
+
 
 // import util from "util";
 
@@ -29,13 +31,10 @@ export interface User {
 
 const userSchema = new Schema("user", {
 	user_name: {
-		type: "text",
+		type: "string",
 	},
 	email: {
 		type: "string",
-	},
-	email_username: {
-		type: "text",
 	},
 	password: {
 		type: "string",
@@ -100,7 +99,7 @@ export async function connectToDatabase() {
 	documentMetaDataRepository.createIndex();
 
 
-	console.log("✅ Connected to Database");
+	log.info("Succesfully connected to database ✅");
 	hasDatabaseInitailised = true;
 	// console.log(util.inspect(user, false, null, true /* enable colors */));
 
@@ -186,18 +185,17 @@ export async function getUserWithEmail(email: string): Promise<User | null> {
 
 export async function getUserWithUsername(userName: string): Promise<User | null> {
 	returnIfDatabaseNotInitialised();
-	const queryResult = await userRepository.search().where("user_name").matchesExactly(userName).return.first();
+	const queryResult = await userRepository.search().where("user_name").equals(userName).return.first();
 	return entityToUser(queryResult);
 }
 //TODO better email matching
 export async function getUserStartingWithUsernameOrEmail(user: string): Promise<User[]> {
 	returnIfDatabaseNotInitialised();
-	user = user.split("@")[0];
-	const queryTerm = `${user}*`;
-	console.log(queryTerm);
+
+	const queryTerm = `*${user}*`;
 	const queryResult = await userRepository.search()
-		.where("user_name").matches(queryTerm)
-		.or("email_username").matches(queryTerm)
+		.where("user_name").equals(queryTerm)
+		.or("email").equals(queryTerm)
 		.return.page(0, 10);
 	console.log(queryResult);
 	return queryResult.map((entity) => entityToUser(entity)).filter((user) => user !== null) as User[];
