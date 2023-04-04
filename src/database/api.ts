@@ -41,6 +41,31 @@ const userSchema = new Schema("user", {
 	}
 });
 
+
+/**
+ * Databse operations related to search in user Repository
+ */
+
+const entityToUser = (entity: Entity | null): User | null => {
+
+	if (entity === null) {
+		//No entity found
+		return null;
+	}
+	else if (Object.keys(entity).length === 0) {
+		//Empty object
+		return null;
+	}
+
+	return {
+		user_name: entity.user_name as string,
+		email: entity.email as string,
+		password: entity.password as string,
+		entityId: entity[EntityId] as string,
+		entityKeyName: entity[EntityKeyName] as string,
+	};
+};
+
 const documentInvitationStoreSchema = new Schema("documentInvitationStore", {
 	document_id: {
 		type: "string",
@@ -58,6 +83,7 @@ const documentInvitationStoreSchema = new Schema("documentInvitationStore", {
 		type: "string",
 	},
 });
+
 
 const documentMetaDataSchema = new Schema("documentMetaData", {
 	leader_id: {
@@ -148,29 +174,8 @@ export async function getRefreshToken(refreshToken: string) {
 }
 
 
-/**
- * Databse operations related to search in user Repository
- */
 
-const entityToUser = (entity: Entity | null): User | null => {
 
-	if (entity === null) {
-		//No entity found
-		return null;
-	}
-	else if (Object.keys(entity).length === 0) {
-		//Empty object
-		return null;
-	}
-
-	return {
-		user_name: entity.user_name as string,
-		email: entity.email as string,
-		password: entity.password as string,
-		entityId: entity[EntityId] as string,
-		entityKeyName: entity[EntityKeyName] as string,
-	};
-};
 
 export async function getUserWithID(userId: string): Promise<User | null> {
 	returnIfDatabaseNotInitialised();
