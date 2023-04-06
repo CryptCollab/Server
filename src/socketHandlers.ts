@@ -1,6 +1,7 @@
 import { RedisClientType } from "redis";
 import { Server } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { getPreKeyBundleWihUserId } from "./database/api";
 
 
 let documentLeader: string, participant: string;
@@ -58,6 +59,13 @@ export async function socketConnectionsHandler(io: Server<DefaultEventsMap, Defa
 			socket.to("documentRoom").emit("awarenessUpdate", awarenessUpdate);
 			//console.log("Recieved awareness update", awarenessUpdate);
 		});
+
+		socket.on("getPreKeyBundleWithUserID", async (userID) => {
+			const preKeyBundle = await getPreKeyBundleWihUserId(userID);
+			socket.emit("preKeyBundleWithUserID", preKeyBundle);
+			socket.to(socket.id).emit("preKeyBundleWithUserID", preKeyBundle,userID);
+		}
+		);
 
 	});
 

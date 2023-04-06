@@ -8,7 +8,7 @@ export const emailValidation = body("email")
 	.notEmpty().withMessage("Email cannot be empty!").bail()
 	.isEmail().withMessage("This mail is not valid!");
 
-export const usernameValidation = body("username")
+export const usernameValidation = body("userName")
 	.exists({ checkNull: true, checkFalsy: true }).withMessage("Username is a required field!").bail()
 	.notEmpty().withMessage("Username cannot be empty!").bail()
 	.isString().withMessage("Username must be of type string!").bail()

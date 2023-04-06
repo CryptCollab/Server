@@ -12,20 +12,20 @@ import { sendUserDataWithTokens } from "../tokenUtils";
  */
 export default async function registerController(req: Request, res: Response) {
 
-	const { email, username, password } = req.body;
+	const { email, userName, password } = req.body;
 
 	// Check if email already exsists
 	if ((await getUserWithEmail(email)) !== null) {
 		return res.status(409).send("An account with this email already exists");
 	}
 
-	if ((await getUserWithUsername(username)) !== null) {
+	if ((await getUserWithUsername(userName)) !== null) {
 		return res.status(409).send("An account with this username already exists");
 	}
 
 	//Store the user in the database
 	const hashedPassword = await bcrypt.hash(password, 10);
-	const user = await insertUserIntoDatabase(username, email, hashedPassword);
+	const user = await insertUserIntoDatabase(userName, email, hashedPassword);
 
 	if (user === null) throw new Error("User is returned as null after inserting into database");
 

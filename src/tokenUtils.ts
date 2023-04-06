@@ -38,7 +38,7 @@ export function sendUserDataWithAccessToken(res: Response, user: User) {
 	return res.send({
 		userData: {
 			email: user.email,
-			userName: user.user_name,
+			userName: user.userName,
 			userID: user.entityId,
 			accessToken
 		},

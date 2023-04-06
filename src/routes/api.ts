@@ -5,7 +5,7 @@ import documentRouter from "./document";
 import refreshRouter from "./refresh";
 import userRouter from "./users";
 import logoutController from "../controllers/logoutController";
-
+import preKeyBundleRouter from "./preKeyBundle";
 const router = Router();
 
 router.get("/", (req, res) => {
@@ -24,6 +24,7 @@ router.use("/refresh", refreshRouter);
 
 router.use("/users", userRouter);
 
+router.use("/prekeybundle", preKeyBundleRouter);
 
 
 export default router;

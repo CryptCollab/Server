@@ -6,7 +6,7 @@ export default async function userSearchController(req: Request, res: Response) 
 	const response = queryResult.map((user: User) => {
 		return {
 			userID: user.entityId,
-			userName: user.user_name,
+			userName: user.userName,
 			email: user.email
 		};
 	});
