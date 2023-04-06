@@ -213,7 +213,7 @@ const entityToUserPreKeyBundle = (entity: Entity | null): UserPreKeyBundle | nul
 
 let redisClient: RedisClientType;
 let userRepository: Repository;
-let documentInvitationStoreRepository: Repository;
+let documentInvitationRepository: Repository;
 let documentMetaDataRepository: Repository;
 let userPreKeyBundleRepository: Repository;
 let hasDatabaseInitailised = false;
@@ -229,12 +229,12 @@ export async function connectToDatabase() {
 	// documentMetaDataRepository = redisOmClient.fetchRepository(documentMetaDataSchema);
 
 	userRepository = new Repository(userSchema, redisClient);
-	documentInvitationStoreRepository = new Repository(documentInvitationSchema, redisClient);
+	documentInvitationRepository = new Repository(documentInvitationSchema, redisClient);
 	documentMetaDataRepository = new Repository(documentMetaDataSchema, redisClient);
 	userPreKeyBundleRepository = new Repository(userPreKeyBundleSchema, redisClient);
 
 	userRepository.createIndex();
-	documentInvitationStoreRepository.createIndex();
+	documentInvitationRepository.createIndex();
 	documentMetaDataRepository.createIndex();
 	userPreKeyBundleRepository.createIndex();
 
@@ -338,9 +338,11 @@ export async function getDocumentMetaDataWithId(documentId: string): Promise<Doc
 	return entityToDocumentMetaData(await documentMetaDataRepository.fetch(documentId));
 }
 
-export async function getDocumentInvitationWithId(documentInvitationId: string): Promise<DocumentInvitation | null> {
+export async function getDocumentInvitationWithId(userID: string): Promise<DocumentInvitation[] | null> {
 	returnIfDatabaseNotInitialised();
-	return entityToDocumentInvitation(await documentInvitationStoreRepository.fetch(documentInvitationId));
+	const queryResult = await documentInvitationRepository.search().where("participantID").equals(userID).returnAll();
+	const documentInvitations = queryResult.map((entity) => entityToDocumentInvitation(entity)).filter((documentInvitation) => documentInvitation !== null) as DocumentInvitation[];
+	return documentInvitations;
 }
 
 export async function getPreKeyBundleWihUserId(userId: string): Promise<UserPreKeyBundle | null> {
@@ -353,7 +355,7 @@ export async function getPreKeyBundleWihUserId(userId: string): Promise<UserPreK
 export async function insertDocumentInvitationIntoDatabase(documentId: string, participantId: string, leaderId: string, preKeyBundle: string): Promise<DocumentInvitation | null> {
 	returnIfDatabaseNotInitialised();
 
-	const documentInvitation = await documentInvitationStoreRepository.save({
+	const documentInvitation = await documentInvitationRepository.save({
 		documentID: documentId,
 		participantID: participantId,
 		leaderID: leaderId,
