@@ -307,7 +307,17 @@ export async function getUserWithUsername(userName: string): Promise<User | null
 	const queryResult = await userRepository.search().where("userName").equals(userName).return.first();
 	return entityToUser(queryResult);
 }
-//TODO better email matching
+
+export async function getUserWithUsernameOrEmail(user: string): Promise<User | null> {
+	returnIfDatabaseNotInitialised();
+	const queryResult = await userRepository.search()
+		.where("userName").equals(user)
+		.or("email").equals(user)
+		.return.first();
+	return entityToUser(queryResult);
+}
+
+
 export async function getUserStartingWithUsernameOrEmail(user: string): Promise<User[]> {
 	returnIfDatabaseNotInitialised();
 
@@ -381,7 +391,7 @@ export async function insertDocumentMetaDataIntoDatabase(leaderId: string, total
 export async function insertUserPreKeyBundleIntoDatabase(userPreKeyBundle: UserPreKeyBundle) {
 	returnIfDatabaseNotInitialised();
 
-	const insertedData = await userPreKeyBundleRepository.save(userPreKeyBundle.userID,{
+	const insertedData = await userPreKeyBundleRepository.save(userPreKeyBundle.userID, {
 		userID: userPreKeyBundle.userID,
 		IdentityKey: userPreKeyBundle.preKeyBundle.IdentityKey,
 		Signature: userPreKeyBundle.preKeyBundle.SignedPreKey.Signature,
