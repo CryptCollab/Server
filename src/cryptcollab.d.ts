@@ -1,5 +1,6 @@
 declare namespace Express {
     export interface Request {
-        userId?: string
+        userID: string
     }
 }
+declare module "date-format"

@@ -14,7 +14,7 @@ export default async function loginController(req: Request, res: Response) {
 	if (user === null) {
 		return res.status(404).send("Account associated with the email does not exist");
 	}
-	else if (!bcrypt.compareSync(password, user.toJSON().password)) {
+	else if (!bcrypt.compareSync(password, user.password)) {
 		return res.status(401).send("Invalid password or email");
 	}
 	return sendUserDataWithTokens(res, user);

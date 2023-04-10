@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { getRefreshToken, getUserWithId } from "../database/api";
+import { getRefreshToken, getUserWithID } from "../database/api";
 import { sendUserDataWithAccessToken } from "../tokenUtils";
 
 
@@ -36,7 +36,7 @@ export default async function refreshController(req: Request, res: Response) {
 	}
 
 
-	const user = await getUserWithId(userID);
+	const user = await getUserWithID(userID);
 	if (user === null) {
 		return res.status(500).send("Internal Server Error");
 	}
