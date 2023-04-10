@@ -9,7 +9,6 @@ export default async function preKeyBundleController(req: Request, res: Response
 		userID: userID,
 		preKeyBundle: preKeyBundle
 	};
-	const userPreKeyBundle = await insertUserPreKeyBundleIntoDatabase(userBundle as UserPreKeyBundle);
-	console.log(userPreKeyBundle);
+	await insertUserPreKeyBundleIntoDatabase(userBundle as UserPreKeyBundle);
 	res.status(200).send("PrekeyBundle saved to DB");
 }

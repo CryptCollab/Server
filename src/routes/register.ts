@@ -10,7 +10,7 @@ router.get("/", (_req, res) => {
 });
 
 router.post("/", validate(emailValidation, usernameValidation, passwordValidation), async (req, res) => {
-
+	
 	try {
 		await registerController(req, res);
 	}

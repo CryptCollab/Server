@@ -5,7 +5,7 @@ import documentJoiningController from "../controllers/documentJoiningController"
 import documentInvitationController from "../controllers/documentInvitationController";
 import { checkSchema, Schema } from "express-validator";
 import log from "../logger";
-import { getDocumentMetaDataWithId } from "../database/api";
+import { getDocumentMetaDataWithDocumentID } from "../database/api";
 import validate, { exsistsInQuery } from "../middlewares/validateBody";
 
 
@@ -89,14 +89,14 @@ const documentInvitationSchema: Schema = {
 router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req, res) => {
 	const documentID = req.query.documentID;
 	log.debug(documentID);
-	const documentMetaData = await getDocumentMetaDataWithId(documentID as string);
+	const documentMetaData = await getDocumentMetaDataWithDocumentID(documentID as string);
 	if (documentMetaData) {
 		return res.status(200).send(documentMetaData);
 	}
 	else {
 		return res.status(404).send("Document not found");
 	}
-	
+
 });
 
 router.post("/", verifyJWT, documentCreationController);
