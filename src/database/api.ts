@@ -473,6 +473,12 @@ export async function getDocumentGroupKeyWithDocumentIDAndUserID(documentID: str
 	return entityToDocumentGroupKey(queryResult);
 }
 
+export async function getDocumentListWithUserID(userId: string): Promise<string[]>{
+	returnIfDatabaseNotInitialised();
+	const queryResult = await userRepository.fetch(userId);
+	return entityToUser(queryResult)?.documentIDs ?? [];
+}
+
 
 
 export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User | null> {
@@ -486,6 +492,21 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 		password: hashedPassword
 	});
 	return entityToUser(user);
+}
+
+export async function insertDocumentIDIntoUserDatabase(documentID: string, userID: string): Promise<void> {
+	returnIfDatabaseNotInitialised();
+	const user = entityToUser(await userRepository.fetch(userID));
+	if (user && user.documentIDs !== null && user.documentIDs !== undefined) {
+		const newDocumentIDs = [...user.documentIDs, documentID];
+		await userRepository.save(user?.entityId as string, {
+			userName: user?.userName,
+			email: user?.email,
+			password: user?.password,
+			documentIDs: newDocumentIDs
+		});
+	}
+
 }
 
 
@@ -513,6 +534,33 @@ export async function insertDocumentMetaDataIntoDatabase(leaderId: string, total
 	});
 
 	return entityToDocumentMetaData(documentMetaData);
+}
+
+export async function insertUserIDIntoDocumentMetaDataDatabase(documentID: string, userID: string): Promise<void> {
+	returnIfDatabaseNotInitialised();
+	const documentMetaData = entityToDocumentMetaData(await documentMetaDataRepository.fetch(documentID));
+	if (documentMetaData && documentMetaData.participantIDs !== null && documentMetaData.participantIDs !== undefined) {
+		const newParticipantIDs = [...documentMetaData.participantIDs, userID];
+		await documentMetaDataRepository.save(documentMetaData?.entityId as string, {
+			leaderID: documentMetaData?.leaderID,
+			totalParticipants: documentMetaData?.totalParticipants,
+			participantIDs: newParticipantIDs,
+			latestDocumentUpdate: documentMetaData?.latestDocumentUpdate
+		});
+	}
+}
+
+export async function insertLatestUpdateIntoDocumentMetaDataDatabase(documentID: string, latestDocumentUpdate: string): Promise<void> {
+	returnIfDatabaseNotInitialised();
+	const documentMetaData = entityToDocumentMetaData(await documentMetaDataRepository.fetch(documentID));
+	if (documentMetaData) {
+		await documentMetaDataRepository.save(documentMetaData?.entityId as string, {
+			leaderID: documentMetaData?.leaderID,
+			totalParticipants: documentMetaData?.totalParticipants,
+			participantIDs: documentMetaData?.participantIDs,
+			latestDocumentUpdate: latestDocumentUpdate
+		});
+	}
 }
 
 export async function insertUserPreKeyBundleIntoDatabase(userPreKeyBundle: UserPreKeyBundle) {

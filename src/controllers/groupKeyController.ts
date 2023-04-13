@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { insertDocumentGroupKeyIntoDatabase } from "../database/api";
+import { insertDocumentGroupKeyIntoDatabase, insertDocumentIDIntoUserDatabase, insertUserIDIntoDocumentMetaDataDatabase } from "../database/api";
 import log from "../logger";
 
 async function groupKeyController(req: Request, res: Response) {
@@ -10,6 +10,8 @@ async function groupKeyController(req: Request, res: Response) {
 
 	try {
 		await insertDocumentGroupKeyIntoDatabase(userID, documentID, groupKey, groupKeyiv);
+		await insertDocumentIDIntoUserDatabase(documentID, userID);
+		await insertUserIDIntoDocumentMetaDataDatabase(documentID, userID);
 		res.status(200).send("group key pushed to DB");
 	} catch (err) {
 		log.debug(err);

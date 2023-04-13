@@ -3,6 +3,7 @@ import documentCreationController from "../controllers/documentCreationControlle
 import verifyJWT from "../middlewares/authenticateUser";
 import documentJoiningController from "../controllers/documentJoiningController";
 import documentInvitationController from "../controllers/documentInvitationController";
+import existingDocumentsController from "../controllers/existingDocumentController";
 import { checkSchema, Schema } from "express-validator";
 import log from "../logger";
 import { getDocumentMetaDataWithDocumentID } from "../database/api";
@@ -102,6 +103,8 @@ router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req, r
 router.post("/", verifyJWT, documentCreationController);
 
 router.get("/invites", verifyJWT, documentJoiningController);
+
+router.get("existingdocuments", verifyJWT, existingDocumentsController);
 
 router.post("/invites", verifyJWT, checkSchema(documentInvitationSchema), async (req: Request, res: Response) => {
 	try {
