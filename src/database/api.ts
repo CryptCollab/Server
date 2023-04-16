@@ -473,7 +473,7 @@ export async function getDocumentGroupKeyWithDocumentIDAndUserID(documentID: str
 	return entityToDocumentGroupKey(queryResult);
 }
 
-export async function getDocumentListWithUserID(userId: string): Promise<string[]>{
+export async function getDocumentListWithUserID(userId: string): Promise<string[]> {
 	returnIfDatabaseNotInitialised();
 	const queryResult = await userRepository.fetch(userId);
 	return entityToUser(queryResult)?.documentIDs ?? [];
@@ -489,7 +489,8 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 		userName: userName,
 		email: email,
 		email_username: email.split("@")[0],
-		password: hashedPassword
+		password: hashedPassword,
+		documentIDs: []
 	});
 	return entityToUser(user);
 }
@@ -497,15 +498,14 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 export async function insertDocumentIDIntoUserDatabase(documentID: string, userID: string): Promise<void> {
 	returnIfDatabaseNotInitialised();
 	const user = entityToUser(await userRepository.fetch(userID));
-	if (user && user.documentIDs !== null && user.documentIDs !== undefined) {
-		const newDocumentIDs = [...user.documentIDs, documentID];
-		await userRepository.save(user?.entityId as string, {
-			userName: user?.userName,
-			email: user?.email,
-			password: user?.password,
-			documentIDs: newDocumentIDs
-		});
-	}
+	user?.documentIDs.push(documentID);
+	const inserted = await userRepository.save(user?.entityId as string, {
+		userName: user?.userName,
+		email: user?.email,
+		password: user?.password,
+		documentIDs: user?.documentIDs
+	});
+	console.log(inserted);
 
 }
 

@@ -104,7 +104,7 @@ router.post("/", verifyJWT, documentCreationController);
 
 router.get("/invites", verifyJWT, documentJoiningController);
 
-router.get("existingdocuments", verifyJWT, existingDocumentsController);
+router.get("/existingdocuments", verifyJWT, existingDocumentsController);
 
 router.post("/invites", verifyJWT, checkSchema(documentInvitationSchema), async (req: Request, res: Response) => {
 	try {

@@ -35,8 +35,12 @@ router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req: R
 
 	try {
 
-		const groupKey = await getDocumentGroupKeyWithDocumentIDAndUserID(documentID as string, userID);
-		res.status(200).json(groupKey?.groupKey);
+		const queryResponse = await getDocumentGroupKeyWithDocumentIDAndUserID(documentID as string, userID);
+		const groupKey = {
+			groupKey: queryResponse?.groupKey,
+			groupKeyiv: queryResponse?.groupKeyiv
+		};
+		res.status(200).json(groupKey);
 	}
 	catch (err) {
 		res.status(500).json({ error: "Internal Server Error" });
