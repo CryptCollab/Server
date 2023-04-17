@@ -440,7 +440,6 @@ export async function getUserStartingWithUsernameOrEmail(user: string): Promise<
 		.where("userName").equals(queryTerm)
 		.or("email").equals(queryTerm)
 		.return.page(0, 10);
-	console.log(queryResult);
 	return queryResult.map((entity) => entityToUser(entity)).filter((user) => user !== null) as User[];
 }
 
@@ -499,13 +498,12 @@ export async function insertDocumentIDIntoUserDatabase(documentID: string, userI
 	returnIfDatabaseNotInitialised();
 	const user = entityToUser(await userRepository.fetch(userID));
 	user?.documentIDs.push(documentID);
-	const inserted = await userRepository.save(user?.entityId as string, {
+	await userRepository.save(user?.entityId as string, {
 		userName: user?.userName,
 		email: user?.email,
 		password: user?.password,
 		documentIDs: user?.documentIDs
 	});
-	console.log(inserted);
 
 }
 
@@ -605,3 +603,11 @@ export async function insertDocumentGroupKeyIntoDatabase(userID: string, documen
 	return entityToDocumentGroupKey(insertedData);
 }
 
+
+export async function deleteDocumentInvitation(userID: string, documentID: string): Promise<void> {
+	returnIfDatabaseNotInitialised();
+	const queryResult = entityToDocumentInvitation(await documentInvitationRepository.search().where("documentID").equals(documentID).and("participantID").equals(userID).returnFirst());
+	if(queryResult) {
+		await documentInvitationRepository.remove(queryResult.entityId);
+	}
+}

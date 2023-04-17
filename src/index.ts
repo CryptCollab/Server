@@ -59,7 +59,7 @@ connectToDatabase().then(async (redisClient) => {
 app.use(cors({
 	origin: process.env.CLIENT_BASE_URL,
 	credentials: true,
-	methods: ["GET", "POST"],
+	methods: ["GET", "POST", "DELETE"],
 }));
 
 app.use(cookieParser());
