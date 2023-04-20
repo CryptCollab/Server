@@ -28,7 +28,7 @@ export interface User {
 	entityId: string;
 	entityKeyName: string;
 	documentIDs: string[];
-
+	message: string,
 }
 
 export interface DocumentInvitation {
@@ -97,6 +97,9 @@ const userSchema = new Schema("user", {
 	documentIDs: {
 		type: "string[]",
 	},
+	message: {
+		type: "string",
+	}
 
 });
 
@@ -122,6 +125,7 @@ const entityToUser = (entity: Entity | null): User | null => {
 		email: entity.email as string,
 		password: entity.password as string,
 		documentIDs: entity.documentIDs as string[],
+		message: entity.message as string,
 		entityId: entity[EntityId] as string,
 		entityKeyName: entity[EntityKeyName] as string,
 	};
@@ -499,7 +503,8 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 		email: email,
 		email_username: email.split("@")[0],
 		password: hashedPassword,
-		documentIDs: []
+		documentIDs: [],
+		message: "hello world"
 	});
 	return entityToUser(user);
 }
@@ -532,17 +537,18 @@ export async function insertDocumentInvitationIntoDatabase(documentName: string,
 	return entityToDocumentInvitation(documentInvitation);
 }
 
-export async function insertDocumentMetaDataIntoDatabase(documentName: string,leaderId: string, totalParticipants: number, participantIds: string[], latestDocumentUpdate: string): Promise<DocumentMetaData | null> {
+export async function insertDocumentMetaDataIntoDatabase(documentName: string, leaderID: string, totalParticipants: number, participantIDs: string[], latestDocumentUpdate: string): Promise<DocumentMetaData | null> {
 	returnIfDatabaseNotInitialised();
 	const documentMetaData = await documentMetaDataRepository.save({
 		documentName: documentName,
-		leaderID: leaderId,
+		leaderID: leaderID,
 		totalParticipants: totalParticipants,
-		participantIDs: participantIds,
+		participantIDs: participantIDs,
 		latestDocumentUpdate: latestDocumentUpdate
 	});
 	return entityToDocumentMetaData(documentMetaData);
 }
+
 
 export async function insertUserIDIntoDocumentMetaDataDatabase(documentID: string, userID: string): Promise<void> {
 	returnIfDatabaseNotInitialised();
@@ -550,6 +556,7 @@ export async function insertUserIDIntoDocumentMetaDataDatabase(documentID: strin
 	if (documentMetaData && documentMetaData.participantIDs !== null && documentMetaData.participantIDs !== undefined) {
 		const newParticipantIDs = [...documentMetaData.participantIDs, userID];
 		await documentMetaDataRepository.save(documentMetaData?.entityId as string, {
+			documentName: documentMetaData?.documentName,
 			leaderID: documentMetaData?.leaderID,
 			totalParticipants: documentMetaData?.totalParticipants,
 			participantIDs: newParticipantIDs,
