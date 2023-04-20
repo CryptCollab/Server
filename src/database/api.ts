@@ -32,6 +32,7 @@ export interface User {
 }
 
 export interface DocumentInvitation {
+	documentName: string;
 	documentID: string;
 	participantID: string;
 	leaderID: string;
@@ -41,6 +42,7 @@ export interface DocumentInvitation {
 }
 
 export interface DocumentMetaData {
+	documentName: string,
 	leaderID: string;
 	totalParticipants: number;
 	participantIDs: string[];
@@ -126,6 +128,9 @@ const entityToUser = (entity: Entity | null): User | null => {
 };
 
 const documentInvitationSchema = new Schema("documentInvitation", {
+	documentName: {
+		type: "string",
+	},
 	documentID: {
 		type: "string",
 	},
@@ -152,6 +157,7 @@ const entityToDocumentInvitation = (entity: Entity | null): DocumentInvitation |
 	}
 
 	return {
+		documentName: entity.documentName as string,
 		documentID: entity.documentID as string,
 		participantID: entity.participantID as string,
 		leaderID: entity.leaderID as string,
@@ -163,6 +169,9 @@ const entityToDocumentInvitation = (entity: Entity | null): DocumentInvitation |
 
 
 const documentMetaDataSchema = new Schema("documentMetaData", {
+	documentName: {
+		type: "string",
+	},
 	leaderID: {
 		type: "string",
 	},
@@ -189,6 +198,7 @@ const entityToDocumentMetaData = (entity: Entity | null): DocumentMetaData | nul
 	}
 
 	return {
+		documentName: entity.documentName as string,
 		leaderID: entity.leaderID as string,
 		totalParticipants: entity.totalParticipants as number,
 		participantIDs: entity.participantIDs as string[],
@@ -508,29 +518,29 @@ export async function insertDocumentIDIntoUserDatabase(documentID: string, userI
 }
 
 
-export async function insertDocumentInvitationIntoDatabase(documentID: string, participantId: string, leaderId: string, preKeyBundle: string): Promise<DocumentInvitation | null> {
+export async function insertDocumentInvitationIntoDatabase(documentName: string,documentID: string, participantId: string, leaderId: string, preKeyBundle: string): Promise<DocumentInvitation | null> {
 	returnIfDatabaseNotInitialised();
 
 	const documentInvitation = await documentInvitationRepository.save({
+		documentName: documentName,
 		documentID: documentID,
 		participantID: participantId,
 		leaderID: leaderId,
 		preKeyBundle: preKeyBundle
 	});
-
+	
 	return entityToDocumentInvitation(documentInvitation);
 }
 
-export async function insertDocumentMetaDataIntoDatabase(leaderId: string, totalParticipants: number, participantIds: string[], latestDocumentUpdate: string): Promise<DocumentMetaData | null> {
+export async function insertDocumentMetaDataIntoDatabase(documentName: string,leaderId: string, totalParticipants: number, participantIds: string[], latestDocumentUpdate: string): Promise<DocumentMetaData | null> {
 	returnIfDatabaseNotInitialised();
-
 	const documentMetaData = await documentMetaDataRepository.save({
+		documentName: documentName,
 		leaderID: leaderId,
 		totalParticipants: totalParticipants,
 		participantIDs: participantIds,
 		latestDocumentUpdate: latestDocumentUpdate
 	});
-
 	return entityToDocumentMetaData(documentMetaData);
 }
 
