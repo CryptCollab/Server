@@ -25,17 +25,19 @@ export const passwordValidation = body("password")
 	.isLength({ max: 100 }).withMessage("Password must be at most 100 characters long!");
 
 /**
- * Dyanmic validation for checking if a field exsists and is not empty
+ * Dynamic validation for checking if a field exists and is not empty
 */
-export const exsistsInBody = (...fields: string[]) => body(fields)
-	.exists({ checkNull: true, checkFalsy: true }).withMessage(`${fields} is a required field!`).bail()
-	.notEmpty().withMessage(`${fields} cannot be empty!`).bail()
-	.isString().withMessage(`${fields} must be of type string!`).bail();
+export const existsInBody = (...fields: string[]) =>
+	fields.map(field => body(field)
+		.exists({ checkNull: true, checkFalsy: true }).withMessage(`${field} is a required field!`).bail()
+		.notEmpty().withMessage(`${field} cannot be empty!`).bail()
+		.isString().withMessage(`${field} must be of type string!`).bail());
 
-export const exsistsInQuery = (...fields: string[]) => query(fields)
-	.exists({ checkNull: true, checkFalsy: true }).withMessage(`${fields} is a required field!`).bail()
-	.notEmpty().withMessage(`${fields} cannot be empty!`).bail()
-	.isString().withMessage(`${fields} must be of type string!`).bail();
+export const existsInQuery = (...fields: string[]) =>
+	fields.map(field => query(field)
+		.exists({ checkNull: true, checkFalsy: true }).withMessage(`${field} is a required field!`).bail()
+		.notEmpty().withMessage(`${field} cannot be empty!`).bail()
+		.isString().withMessage(`${field} must be of type string!`).bail());
 
 
 
