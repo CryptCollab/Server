@@ -36,12 +36,10 @@ export function sendUserDataWithAccessToken(res: Response, user: User) {
 	const accessToken = generateAccessToken(user.entityId);
 
 	return res.send({
-		userData: {
-			email: user.email,
-			userName: user.userName,
-			userID: user.entityId,
-			accessToken
-		},
+		email: user.email,
+		userName: user.userName,
+		userID: user.entityId,
+		accessToken
 	});
 }
 
