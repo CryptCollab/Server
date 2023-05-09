@@ -11,7 +11,6 @@ import { sendUserDataWithTokens } from "../tokenUtils";
  * If they are valid, then it inserts the user into the database
  */
 export default async function registerController(req: Request, res: Response) {
-
 	const { email, userName, password } = req.body;
 
 	// Check if email already exists

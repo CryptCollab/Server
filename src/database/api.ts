@@ -27,6 +27,7 @@ export interface User {
 	password: string;
 	entityId: string;
 	entityKeyName: string;
+	documentIDs: string[];
 
 }
 
@@ -60,6 +61,27 @@ export interface UserPreKeyBundle {
 
 }
 
+export interface UserKeyStore {
+	userID: string;
+	identityPublic: string;
+	identityPubliciv: string;
+	identitySecret: string;
+	identitySecretiv: string;
+	preKeyPublic: string;
+	preKeyPubliciv: string;
+	preKeySecret: string;
+	preKeySecretiv: string;
+	masterKey: string;
+}
+
+export interface DocumentGroupKey {
+	userID: string;
+	documentID: string;
+	groupKey: string;
+	groupKeyiv: string;
+}
+
+
 const userSchema = new Schema("user", {
 	userName: {
 		type: "string",
@@ -70,7 +92,9 @@ const userSchema = new Schema("user", {
 	password: {
 		type: "string",
 	},
-
+	documentIDs: {
+		type: "string[]",
+	},
 
 });
 
@@ -95,6 +119,7 @@ const entityToUser = (entity: Entity | null): User | null => {
 		userName: entity.userName as string,
 		email: entity.email as string,
 		password: entity.password as string,
+		documentIDs: entity.documentIDs as string[],
 		entityId: entity[EntityId] as string,
 		entityKeyName: entity[EntityKeyName] as string,
 	};
@@ -211,11 +236,106 @@ const entityToUserPreKeyBundle = (entity: Entity | null): UserPreKeyBundle | nul
 	};
 };
 
+const userKeyStoreSchema = new Schema("userKeyStore", {
+	userID: {
+		type: "string",
+	},
+	identityPublic: {
+		type: "string",
+	},
+	identityPubliciv: {
+		type: "string",
+	},
+	identitySecret: {
+		type: "string",
+	},
+	identitySecretiv: {
+		type: "string",
+	},
+	preKeyPublic: {
+		type: "string",
+	},
+	preKeyPubliciv: {
+		type: "string",
+	},
+	preKeySecret: {
+		type: "string",
+	},
+	preKeySecretiv: {
+		type: "string",
+	},
+	masterKey: {
+		type: "string",
+	},
+});
+
+const entityToUserKeyStore = (entity: Entity | null): UserKeyStore | null => {
+	if (entity === null) {
+		//No entity found
+		return null;
+	}
+	else if (Object.keys(entity).length === 0) {
+		//Empty object
+		return null;
+	}
+	return {
+		userID: entity.userID as string,
+		identityPublic: entity.identityPublic as string,
+		identityPubliciv: entity.identityPubliciv as string,
+		identitySecret: entity.identitySecret as string,
+		identitySecretiv: entity.identitySecretiv as string,
+		preKeyPublic: entity.preKeyPublic as string,
+		preKeyPubliciv: entity.preKeyPubliciv as string,
+		preKeySecret: entity.preKeySecret as string,
+		preKeySecretiv: entity.preKeySecretiv as string,
+		masterKey: entity.masterKey as string,
+	};
+};
+
+const documentGroupKeySchema = new Schema("documentGroupKey", {
+	userID: {
+		type: "string",
+	},
+	documentID: {
+		type: "string",
+	},
+	groupKey: {
+		type: "string",
+	},
+	groupKeyiv: {
+		type: "string",
+	},
+});
+
+const entityToDocumentGroupKey = (entity: Entity | null): DocumentGroupKey | null => {
+	if (entity === null) {
+		//No entity found
+		return null;
+	}
+	else if (Object.keys(entity).length === 0) {
+		//Empty object
+		return null;
+	}
+	return {
+		userID: entity.userID as string,
+		documentID: entity.documentID as string,
+		groupKey: entity.groupKey as string,
+		groupKeyiv: entity.groupKeyiv as string,
+	};
+};
+
+
+
+
+
+
 let redisClient: RedisClientType;
 let userRepository: Repository;
 let documentInvitationRepository: Repository;
 let documentMetaDataRepository: Repository;
 let userPreKeyBundleRepository: Repository;
+let userKeyStoreRepository: Repository;
+let documentGroupKeyRepository: Repository;
 let hasDatabaseInitailised = false;
 
 export async function connectToDatabase() {
@@ -232,11 +352,15 @@ export async function connectToDatabase() {
 	documentInvitationRepository = new Repository(documentInvitationSchema, redisClient);
 	documentMetaDataRepository = new Repository(documentMetaDataSchema, redisClient);
 	userPreKeyBundleRepository = new Repository(userPreKeyBundleSchema, redisClient);
+	userKeyStoreRepository = new Repository(userKeyStoreSchema, redisClient);
+	documentGroupKeyRepository = new Repository(documentGroupKeySchema, redisClient);
 
 	userRepository.createIndex();
 	documentInvitationRepository.createIndex();
 	documentMetaDataRepository.createIndex();
 	userPreKeyBundleRepository.createIndex();
+	userKeyStoreRepository.createIndex();
+	documentGroupKeyRepository.createIndex();
 
 
 	log.info("Succesfully connected to database ✅");
@@ -330,6 +454,37 @@ export async function getUserStartingWithUsernameOrEmail(user: string): Promise<
 	return queryResult.map((entity) => entityToUser(entity)).filter((user) => user !== null) as User[];
 }
 
+
+export async function getDocumentMetaDataWithDocumentID(documentID: string): Promise<DocumentMetaData | null> {
+	returnIfDatabaseNotInitialised();
+	return entityToDocumentMetaData(await documentMetaDataRepository.fetch(documentID));
+}
+
+export async function getDocumentInvitationWithUserID(userID: string): Promise<DocumentInvitation[] | null> {
+	returnIfDatabaseNotInitialised();
+	const queryResult = await documentInvitationRepository.search().where("participantID").equals(userID).returnAll();
+	const documentInvitations = queryResult.map((entity) => entityToDocumentInvitation(entity)).filter((documentInvitation) => documentInvitation !== null) as DocumentInvitation[];
+	return documentInvitations;
+}
+
+export async function getPreKeyBundleWithUserID(userId: string): Promise<UserPreKeyBundle | null> {
+	returnIfDatabaseNotInitialised();
+	return entityToUserPreKeyBundle(await userPreKeyBundleRepository.fetch(userId));
+}
+
+export async function getUserKeyStoreWithUserID(userId: string): Promise<UserKeyStore | null> {
+	returnIfDatabaseNotInitialised();
+	return entityToUserKeyStore(await userKeyStoreRepository.fetch(userId));
+}
+
+export async function getDocumentGroupKeyWithDocumentIDAndUserID(documentID: string, userID: string): Promise<DocumentGroupKey | null> {
+	returnIfDatabaseNotInitialised();
+	const queryResult = await documentGroupKeyRepository.search().where("documentID").equals(documentID).and("userID").equals(userID).return.first();
+	return entityToDocumentGroupKey(queryResult);
+}
+
+
+
 export async function insertUserIntoDatabase(userName: string, email: string, hashedPassword: string): Promise<User | null> {
 	returnIfDatabaseNotInitialised();
 
@@ -343,30 +498,12 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 	return entityToUser(user);
 }
 
-export async function getDocumentMetaDataWithId(documentId: string): Promise<DocumentMetaData | null> {
-	returnIfDatabaseNotInitialised();
-	return entityToDocumentMetaData(await documentMetaDataRepository.fetch(documentId));
-}
 
-export async function getDocumentInvitationWithId(userID: string): Promise<DocumentInvitation[] | null> {
-	returnIfDatabaseNotInitialised();
-	const queryResult = await documentInvitationRepository.search().where("participantID").equals(userID).returnAll();
-	const documentInvitations = queryResult.map((entity) => entityToDocumentInvitation(entity)).filter((documentInvitation) => documentInvitation !== null) as DocumentInvitation[];
-	return documentInvitations;
-}
-
-export async function getPreKeyBundleWihUserId(userId: string): Promise<UserPreKeyBundle | null> {
-	returnIfDatabaseNotInitialised();
-	return entityToUserPreKeyBundle(await userPreKeyBundleRepository.fetch(userId));
-}
-
-
-
-export async function insertDocumentInvitationIntoDatabase(documentId: string, participantId: string, leaderId: string, preKeyBundle: string): Promise<DocumentInvitation | null> {
+export async function insertDocumentInvitationIntoDatabase(documentID: string, participantId: string, leaderId: string, preKeyBundle: string): Promise<DocumentInvitation | null> {
 	returnIfDatabaseNotInitialised();
 
 	const documentInvitation = await documentInvitationRepository.save({
-		documentID: documentId,
+		documentID: documentID,
 		participantID: participantId,
 		leaderID: leaderId,
 		preKeyBundle: preKeyBundle
@@ -398,5 +535,35 @@ export async function insertUserPreKeyBundleIntoDatabase(userPreKeyBundle: UserP
 		PreKey: userPreKeyBundle.preKeyBundle.SignedPreKey.PreKey,
 	});
 	return entityToUserPreKeyBundle(insertedData);
+}
+
+export async function insertUserKeyStoreIntoDatabase(userKeyStore: UserKeyStore) {
+	returnIfDatabaseNotInitialised();
+
+	const insertedData = await userKeyStoreRepository.save(userKeyStore.userID, {
+		userID: userKeyStore.userID,
+		identityPublic: userKeyStore.identityPublic,
+		identityPubliciv: userKeyStore.identityPubliciv,
+		identitySecret: userKeyStore.identitySecret,
+		identitySecretiv: userKeyStore.identitySecretiv,
+		preKeyPublic: userKeyStore.preKeyPublic,
+		preKeyPubliciv: userKeyStore.preKeyPubliciv,
+		preKeySecret: userKeyStore.preKeySecret,
+		preKeySecretiv: userKeyStore.preKeySecretiv,
+		masterKey: userKeyStore.masterKey,
+	});
+	return entityToUserKeyStore(insertedData);
+}
+
+export async function insertDocumentGroupKeyIntoDatabase(userID: string, documentID: string, groupKey: string, groupKeyiv: string): Promise<DocumentGroupKey | null> {
+	returnIfDatabaseNotInitialised();
+
+	const insertedData = await documentGroupKeyRepository.save(userID, {
+		userID: userID,
+		documentID: documentID,
+		groupKey: groupKey,
+		groupKeyiv: groupKeyiv,
+	});
+	return entityToDocumentGroupKey(insertedData);
 }
 
