@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import verifyJWT from "../middlewares/authenticateUser";
-import validate, { exsistsInQuery } from "../middlewares/validateBody";
+import { existsInQuery } from "../middlewares/validateBody";
 import { getDocumentGroupKeyWithDocumentIDAndUserID } from "../database/api";
 import groupKeyController from "../controllers/groupKeyController";
 import log from "../logger";
@@ -29,14 +29,18 @@ const groupKeySchema: Schema = {
 	}
 };
 
-router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req: Request, res: Response) => {
+router.get("/", verifyJWT, existsInQuery("documentID"), async (req: Request, res: Response) => {
 	const userID = req.userID;
 	const documentID = req.query.documentID;
 
 	try {
 
-		const groupKey = await getDocumentGroupKeyWithDocumentIDAndUserID(documentID as string, userID);
-		res.status(200).json(groupKey?.groupKey);
+		const queryResponse = await getDocumentGroupKeyWithDocumentIDAndUserID(documentID as string, userID);
+		const groupKey = {
+			groupKey: queryResponse?.groupKey,
+			groupKeyiv: queryResponse?.groupKeyiv
+		};
+		res.status(200).json(groupKey);
 	}
 	catch (err) {
 		res.status(500).json({ error: "Internal Server Error" });

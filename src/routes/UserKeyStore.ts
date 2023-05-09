@@ -177,7 +177,6 @@ router.get("/", verifyJWT, async (req, res) => {
 	if (userKeyStore) {
 		return res.status(200).send(userKeyStore);
 	}
-	console.log("KeyStore not found");
 	return res.status(404).send("KeyStore not found");
 });
 

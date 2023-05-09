@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { insertDocumentInvitationIntoDatabase } from "../database/api";
-import log from "../logger";
 
 type userInvites = {
+	documentName: string,
 	documentID: string;
 	participantID: string;
 	leaderID: string;
@@ -13,8 +13,8 @@ export default async function documentInvitationController(req: Request, res: Re
 	const invitationData: userInvites[] = req.body.userInvitesArray;
 	for (const inviteData of invitationData) {
 
-		const documentInvitation = await insertDocumentInvitationIntoDatabase(inviteData.documentID, inviteData.participantID, inviteData.leaderID, inviteData.preKeyBundle);
-		log.debug(documentInvitation);
+		await insertDocumentInvitationIntoDatabase(inviteData.documentName,inviteData.documentID, inviteData.participantID, inviteData.leaderID, inviteData.preKeyBundle);
+		
 	}
 	return res.status(200).send("Invitations sent");
 }

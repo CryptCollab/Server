@@ -3,9 +3,10 @@ import documentCreationController from "../controllers/documentCreationControlle
 import verifyJWT from "../middlewares/authenticateUser";
 import documentJoiningController from "../controllers/documentJoiningController";
 import documentInvitationController from "../controllers/documentInvitationController";
+import existingDocumentsController from "../controllers/existingDocumentController";
 import { checkSchema, Schema } from "express-validator";
 import log from "../logger";
-import { getDocumentMetaDataWithDocumentID } from "../database/api";
+import { deleteDocumentInvitation, getDocumentMetaDataWithDocumentID } from "../database/api";
 import validate, { existsInQuery } from "../middlewares/validateBody";
 
 
@@ -88,7 +89,6 @@ const documentInvitationSchema: Schema = {
 };
 router.get("/", verifyJWT, validate(...existsInQuery("documentID")), async (req, res) => {
 	const documentID = req.query.documentID;
-	log.debug(documentID);
 	const documentMetaData = await getDocumentMetaDataWithDocumentID(documentID as string);
 	if (documentMetaData) {
 		return res.status(200).send(documentMetaData);
@@ -103,6 +103,8 @@ router.post("/", verifyJWT, documentCreationController);
 
 router.get("/invites", verifyJWT, documentJoiningController);
 
+router.get("/existingdocuments", verifyJWT, existingDocumentsController);
+
 router.post("/invites", verifyJWT, checkSchema(documentInvitationSchema), async (req: Request, res: Response) => {
 	try {
 		await documentInvitationController(req, res);
@@ -112,6 +114,21 @@ router.post("/invites", verifyJWT, checkSchema(documentInvitationSchema), async 
 		return res.status(500).send("Internal server error");
 	}
 });
+
+router.delete("/invites", verifyJWT, async (req: Request, res: Response) => { 
+	log.debug("delete invite");
+	const documentID = req.body.documentID;
+	const userID = req.userID;
+	//console.log(documentID, userID);
+	try {
+		await deleteDocumentInvitation(userID,documentID);
+	}
+	catch (error) {
+		log.error(error);
+		return res.status(500).send("Internal server error");
+	}
+});
+
 
 export default router;
 
