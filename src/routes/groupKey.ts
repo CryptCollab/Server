@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import verifyJWT from "../middlewares/authenticateUser";
-import validate, { exsistsInQuery } from "../middlewares/validateBody";
+import { existsInQuery } from "../middlewares/validateBody";
 import { getDocumentGroupKeyWithDocumentIDAndUserID } from "../database/api";
 import groupKeyController from "../controllers/groupKeyController";
 import log from "../logger";
@@ -29,7 +29,7 @@ const groupKeySchema: Schema = {
 	}
 };
 
-router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req: Request, res: Response) => {
+router.get("/", verifyJWT, existsInQuery("documentID"), async (req: Request, res: Response) => {
 	const userID = req.userID;
 	const documentID = req.query.documentID;
 
