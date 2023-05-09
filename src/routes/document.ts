@@ -119,7 +119,7 @@ router.delete("/invites", verifyJWT, async (req: Request, res: Response) => {
 	log.debug("delete invite");
 	const documentID = req.body.documentID;
 	const userID = req.userID;
-	console.log(documentID, userID);
+	//console.log(documentID, userID);
 	try {
 		await deleteDocumentInvitation(userID,documentID);
 	}

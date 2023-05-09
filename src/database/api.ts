@@ -513,6 +513,7 @@ export async function insertDocumentIDIntoUserDatabase(documentID: string, userI
 	returnIfDatabaseNotInitialised();
 	const user = entityToUser(await userRepository.fetch(userID));
 	user?.documentIDs.push(documentID);
+	log.debug("Inserting documentID into user database");
 	await userRepository.save(user?.entityId as string, {
 		userName: user?.userName,
 		email: user?.email,
