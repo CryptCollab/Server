@@ -1,11 +1,11 @@
 import { Router } from "express";
 import searchUsers from "../controllers/userSearchController";
-import validate, { exsistsInQuery } from "../middlewares/validateBody";
+import validate, { existsInQuery } from "../middlewares/validateBody";
 
 
 const router = Router();
 
-router.get("/", validate(exsistsInQuery("user")), async (req, res) => {
+router.get("/", validate(...existsInQuery("user")), async (req, res) => {
 	try {
 		await searchUsers(req, res);
 	}

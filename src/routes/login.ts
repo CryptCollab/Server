@@ -1,4 +1,4 @@
-import { exsistsInBody, passwordValidation } from "../middlewares/validateBody";
+import validate, { existsInBody as existsInBody, passwordValidation } from "../middlewares/validateBody";
 import { Request, Response, Router } from "express";
 import loginController from "../controllers/loginController";
 
@@ -8,7 +8,7 @@ router.get("/", (_req, res) => {
 	return res.send("Hey! This is the GET response for the /login route. Did you meant to POST to this route?");
 });
 
-router.post("/", exsistsInBody("user"), passwordValidation, async (req: Request, res: Response) => {
+router.post("/", validate(...existsInBody("user"), passwordValidation), async (req: Request, res: Response) => {
 
 	try {
 		await loginController(req, res);

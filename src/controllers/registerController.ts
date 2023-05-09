@@ -14,14 +14,26 @@ export default async function registerController(req: Request, res: Response) {
 
 	const { email, userName, password } = req.body;
 
-	// Check if email already exsists
+	// Check if email already exists
+	const errors = [];
+
 	if ((await getUserWithEmail(email)) !== null) {
-		return res.status(409).send("An account with this email already exists");
+		errors.push({
+			param: "email",
+			msg: "An account associated with this email already exists",
+			location: "body"
+		});
 	}
 
 	if ((await getUserWithUsername(userName)) !== null) {
-		return res.status(409).send("An account with this username already exists");
+		errors.push({
+			param: "username",
+			msg: "An account associated with this username already exist",
+			location: "body"
+		});
 	}
+
+	if (errors.length > 0) return res.status(409).send({ errors });
 
 	//Store the user in the database
 	const hashedPassword = await bcrypt.hash(password, 10);
