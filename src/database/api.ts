@@ -431,7 +431,17 @@ export async function getUserWithUsername(userName: string): Promise<User | null
 	const queryResult = await userRepository.search().where("userName").equals(userName).return.first();
 	return entityToUser(queryResult);
 }
-//TODO better email matching
+
+export async function getUserWithUsernameOrEmail(user: string): Promise<User | null> {
+	returnIfDatabaseNotInitialised();
+	const queryResult = await userRepository.search()
+		.where("userName").equals(user)
+		.or("email").equals(user)
+		.return.first();
+	return entityToUser(queryResult);
+}
+
+
 export async function getUserStartingWithUsernameOrEmail(user: string): Promise<User[]> {
 	returnIfDatabaseNotInitialised();
 

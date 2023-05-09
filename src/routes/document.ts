@@ -6,7 +6,7 @@ import documentInvitationController from "../controllers/documentInvitationContr
 import { checkSchema, Schema } from "express-validator";
 import log from "../logger";
 import { getDocumentMetaDataWithDocumentID } from "../database/api";
-import validate, { exsistsInQuery } from "../middlewares/validateBody";
+import validate, { existsInQuery } from "../middlewares/validateBody";
 
 
 const router = Router();
@@ -86,7 +86,7 @@ const documentInvitationSchema: Schema = {
 		},
 	}
 };
-router.get("/", verifyJWT, validate(exsistsInQuery("documentID")), async (req, res) => {
+router.get("/", verifyJWT, validate(...existsInQuery("documentID")), async (req, res) => {
 	const documentID = req.query.documentID;
 	log.debug(documentID);
 	const documentMetaData = await getDocumentMetaDataWithDocumentID(documentID as string);
