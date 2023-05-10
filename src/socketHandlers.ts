@@ -41,7 +41,6 @@ export async function socketConnectionsHandler(io: Server<DefaultEventsMap, Defa
 		socket.on("documentUpdate", async (documentID, documentUpdate) => {
 			socket.to(documentID).emit("documentUpdate", documentUpdate);
 			//console.log("Recieved document update", documentUpdate);
-			console.log("Publishing document update");
 			publisherClient.publish(documentID, documentUpdate);
 			
 		});

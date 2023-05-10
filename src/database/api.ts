@@ -514,7 +514,6 @@ export async function insertUserIntoDatabase(userName: string, email: string, ha
 		email_username: email.split("@")[0],
 		password: hashedPassword,
 		documentIDs: [],
-		message: "hello world"
 	});
 	return entityToUser(user);
 }
