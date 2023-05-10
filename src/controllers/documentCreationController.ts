@@ -10,8 +10,13 @@ export default async function documentCreationController(req: Request, res: Resp
 	//Add the document ID to the user's document list
 	//log.debug(documentMetaData);
 	//Send the document ID to the client
-	const kafkaClient = createKafkaClient();
-	await createTopic(documentMetaData?.entityId as string, kafkaClient);
+	try {
+		const kafkaClient = createKafkaClient();
+		await createTopic(documentMetaData?.entityId as string, kafkaClient);
+	}
+	catch (error) {
+		console.log(error);
+	}
 	return res.status(200).send(documentMetaData?.entityId);
 
 }

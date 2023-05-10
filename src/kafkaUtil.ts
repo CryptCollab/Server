@@ -3,10 +3,6 @@ import { Server } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
 
-
-
-
-
 export function createKafkaClient() {
 	const kafkaClient = new KafkaJS({
 		clientId: process.env.KAFKA_CLIENT_ID,
@@ -25,13 +21,19 @@ export function createKafkaClient() {
 
 export async function createTopic(topicName: string, kafkaClient: KafkaJS) {
 	const kafkaAdmin = kafkaClient.admin();
-	await kafkaAdmin.connect();
-	await kafkaAdmin.createTopics({
-		topics: [{
-			topic: topicName,
-			numPartitions: 1,
-		}],
-	});
+	try {
+		await kafkaAdmin.connect();
+		await kafkaAdmin.createTopics({
+			topics: [{
+				topic: topicName,
+				numPartitions: 1,
+			}],
+		});
+	}
+	catch (error) {
+		console.log(error);
+	}
+
 	await kafkaAdmin.disconnect();
 }
 
