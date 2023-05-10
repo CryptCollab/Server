@@ -13,6 +13,7 @@ export default async function documentCreationController(req: Request, res: Resp
 	try {
 		const kafkaClient = createKafkaClient();
 		await createTopic(documentMetaData?.entityId as string, kafkaClient);
+		
 	}
 	catch (error) {
 		console.log(error);

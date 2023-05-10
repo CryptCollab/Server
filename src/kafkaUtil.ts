@@ -13,28 +13,36 @@ export function createKafkaClient() {
 			username: process.env.KAFKA_USERNAME as string,
 			password: process.env.KAFKA_PASSWORD as string,
 		},
-		connectionTimeout: 10000,
+		connectionTimeout: 45000,
+		authenticationTimeout: 10000,
 	});
 	return kafkaClient;
 }
 
 
 export async function createTopic(topicName: string, kafkaClient: KafkaJS) {
-	const kafkaAdmin = kafkaClient.admin();
 	try {
+		const kafkaAdmin = kafkaClient.admin();
 		await kafkaAdmin.connect();
 		await kafkaAdmin.createTopics({
 			topics: [{
 				topic: topicName,
 				numPartitions: 1,
+				replicationFactor: 3,
+				configEntries: [
+					{
+						name: "cleanup.policy",
+						value: "delete",
+					},
+				]
 			}],
 		});
+		await kafkaAdmin.disconnect();
 	}
 	catch (error) {
 		console.log(error);
 	}
 
-	await kafkaAdmin.disconnect();
 }
 
 export async function deleteTopic(topicName: string, kafkaClient: KafkaJS) {
