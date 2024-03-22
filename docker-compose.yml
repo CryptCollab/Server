@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:      
+  redis:
+    image: redis/redis-stack:latest
+    restart: always
+    volumes:
+      - ./redis/redis.conf:/redis-stack.conf
+      - ./redis/data:/data
+    ports:
+      - 6379:6379
+      - 8001:8001
